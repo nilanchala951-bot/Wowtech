@@ -1,0 +1,2755 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>FinVibe - Your Personal Finance App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#eef2ff',
+                            100: '#e0e7ff',
+                            500: '#6366f1',
+                            600: '#4f46e5',
+                            700: '#4338ca',
+                            900: '#312e81',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Tesseract.js for Real OCR Image Extraction -->
+    <script src="https://unpkg.com/tesseract.js@v4.1.1/dist/tesseract.min.js"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Inter Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @media print {
+            body { background: white !important; color: black !important; }
+            #app-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: none !important; height: auto !important; }
+            .no-print { display: none !important; }
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.95); opacity: 0.8; }
+            50% { transform: scale(1.15); opacity: 0.4; }
+            100% { transform: scale(0.95); opacity: 0.8; }
+        }
+        .animate-pulse-ring { animation: pulse-ring 2s infinite ease-in-out; }
+    </style>
+</head>
+<body id="app-body" class="bg-slate-950 text-slate-100 h-full flex items-center justify-center p-0 sm:p-4 selection:bg-brand-500 selection:text-white transition-colors duration-300">
+
+    <!-- Mobile Device Container Wrapper -->
+    <div id="app-container" class="w-full sm:max-w-[420px] h-full sm:h-[880px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-800 bg-slate-900 flex flex-col shadow-2xl relative overflow-hidden transition-all duration-300">
+        
+        <!-- Top Status Bar Simulation -->
+        <div class="bg-slate-900 px-6 py-3 flex justify-between items-center text-xs font-medium text-slate-400 select-none z-30 no-print">
+            <span id="current-time-header">12:44 PM</span>
+            <div class="w-20 h-4 bg-slate-800 rounded-full mx-auto absolute left-1/2 transform -translate-x-1/2 hidden sm:block"></div>
+            <div class="flex items-center space-x-2">
+                <span>5G</span>
+                <i data-lucide="wifi" class="w-3.5 h-3.5"></i>
+                <i data-lucide="battery" class="w-4 h-4"></i>
+            </div>
+        </div>
+
+        <!-- Main Screen Viewport (Scrollable Area) -->
+        <div id="main-viewport" class="flex-1 overflow-y-auto no-scrollbar relative pb-24">
+            
+            <!-- VIEWS -->
+
+            <!-- 1. HOME / DASHBOARD VIEW -->
+            <div id="view-home" class="view-section p-5 space-y-6">
+                <!-- Header Greeting & Profile -->
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-3">
+                        <div onclick="openProfileModal()" class="w-11 h-11 rounded-full bg-brand-500/20 border-2 border-brand-500 overflow-hidden cursor-pointer flex items-center justify-center text-brand-400 font-bold relative group">
+                            <img id="dash-avatar-img" src="" alt="Profile" class="w-full h-full object-cover hidden">
+                            <span id="dash-avatar-initials" class="text-sm">U</span>
+                            <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition">
+                                <i data-lucide="camera" class="w-4 h-4 text-white"></i>
+                            </div>
+                        </div>
+                        <div>
+                            <p class="text-xs text-slate-400 font-medium">Welcome back 👋</p>
+                            <h1 id="dash-user-name" class="text-xl font-bold tracking-tight text-white">Financial Dashboard</h1>
+                        </div>
+                    </div>
+                    <!-- Theme Toggle Dropdown / Button -->
+                    <div class="relative">
+                        <button onclick="toggleThemeDropdown()" class="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i id="current-theme-icon" data-lucide="moon" class="w-5 h-5"></i>
+                        </button>
+                        <div id="theme-dropdown" class="absolute right-0 mt-2 w-44 bg-slate-800 border border-slate-700 rounded-2xl shadow-xl p-2 hidden z-40 space-y-1">
+                            <button onclick="setThemeMode('dark')" class="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-slate-700 text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="moon" class="w-4 h-4 text-indigo-400"></i><span>Dark Mode</span>
+                            </button>
+                            <button onclick="setThemeMode('light')" class="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-slate-700 text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="sun" class="w-4 h-4 text-amber-400"></i><span>Light Mode</span>
+                            </button>
+                            <button onclick="setThemeMode('comfort')" class="w-full text-left px-3 py-2 text-xs rounded-xl hover:bg-slate-700 text-slate-200 flex items-center space-x-2">
+                                <i data-lucide="eye" class="w-4 h-4 text-emerald-400"></i><span>Eye Comfort</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Google Account Connection & Cloud Sync Banner -->
+                <div id="cloud-sync-banner" class="bg-gradient-to-r from-indigo-900/60 to-purple-900/60 border border-indigo-500/30 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+                            <i data-lucide="cloud" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h4 id="cloud-status-title" class="text-xs font-bold text-white">Local Device Storage</h4>
+                            <p id="cloud-status-subtitle" class="text-[10px] text-indigo-200">Connect Google Account for Cloud Backup</p>
+                        </div>
+                    </div>
+                    <button onclick="openCloudSyncModal()" id="cloud-action-btn" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-3 py-2 rounded-xl shadow transition">Connect</button>
+                </div>
+
+                <!-- Master Statement Report Quick Button -->
+                <button onclick="openMasterStatementModal()" class="w-full bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-500 hover:to-indigo-500 text-white p-3.5 rounded-2xl flex items-center justify-between shadow-lg transition">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-9 h-9 rounded-xl bg-white/20 flex items-center justify-center">
+                            <i data-lucide="file-spreadsheet" class="w-5 h-5"></i>
+                        </div>
+                        <div class="text-left">
+                            <h4 class="text-xs font-bold">Master Statement Report</h4>
+                            <p class="text-[10px] text-indigo-200">All transactions with Bank Name, Account Holder Name & IFSC</p>
+                        </div>
+                    </div>
+                    <i data-lucide="chevron-right" class="w-4 h-4 text-indigo-200"></i>
+                </button>
+
+                <!-- Total Balance Card -->
+                <div class="bg-gradient-to-br from-brand-600 to-indigo-900 rounded-2xl p-6 text-white shadow-xl relative overflow-hidden">
+                    <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/10 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <p class="text-xs text-indigo-200 uppercase tracking-wider font-semibold">Total Integrated Net Balance</p>
+                            <h2 id="dash-total-balance" class="text-3xl font-extrabold mt-1">₹0.00</h2>
+                        </div>
+                        <span class="bg-white/20 px-2.5 py-1 rounded-full text-xs font-medium backdrop-blur-sm">All Accounts Sum</span>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 mt-6 pt-4 border-t border-white/15">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400">
+                                <i data-lucide="arrow-down-left" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-indigo-200 uppercase">Monthly Income (Cr.)</p>
+                                <p id="dash-monthly-income" class="text-sm font-bold text-emerald-400">₹0.00</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 rounded-full bg-rose-500/20 flex items-center justify-center text-rose-400">
+                                <i data-lucide="arrow-up-right" class="w-4 h-4"></i>
+                            </div>
+                            <div>
+                                <p class="text-[10px] text-indigo-200 uppercase">Monthly Expense (Dr.)</p>
+                                <p id="dash-monthly-expense" class="text-sm font-bold text-rose-400">₹0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Individual Bank Accounts Balances Section -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-white">Account-wise Balances <span class="text-[10px] text-brand-400 font-normal">(Tap card for Statement & Report)</span></h3>
+                        <button onclick="switchView('accounts')" class="text-xs text-brand-400 hover:underline">Manage</button>
+                    </div>
+                    <div id="dash-accounts-grid" class="grid grid-cols-2 gap-2.5">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+
+                <!-- Quick Shortcuts -->
+                <div class="grid grid-cols-5 gap-2">
+                    <button onclick="switchView('add-transaction')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-500 transition group">
+                        <div class="w-10 h-10 rounded-xl bg-brand-500/10 text-brand-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-300 mt-1.5">Add</span>
+                    </button>
+                    <button onclick="openVoiceModal()" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-500 transition group">
+                        <div class="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i data-lucide="mic" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-300 mt-1.5">Voice</span>
+                    </button>
+                    <button onclick="switchView('accounts')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-500 transition group">
+                        <div class="w-10 h-10 rounded-xl bg-blue-500/10 text-blue-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i data-lucide="landmark" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-300 mt-1.5">Banks</span>
+                    </button>
+                    <button onclick="switchView('analytics')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-500 transition group">
+                        <div class="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-300 mt-1.5">Reports</span>
+                    </button>
+                    <button onclick="switchView('search')" class="flex flex-col items-center justify-center p-2.5 rounded-2xl bg-slate-900 border border-slate-800 hover:border-brand-500 transition group">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center group-hover:scale-110 transition">
+                            <i data-lucide="search" class="w-5 h-5"></i>
+                        </div>
+                        <span class="text-[10px] font-medium text-slate-300 mt-1.5">Search</span>
+                    </button>
+                </div>
+
+                <!-- Recent Transactions -->
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <h3 class="text-sm font-bold text-white">Recent Transactions <span class="text-[10px] text-brand-400 font-normal">(Chronological Order)</span></h3>
+                        <button onclick="switchView('search')" class="text-xs text-brand-400 hover:underline">View All</button>
+                    </div>
+                    <div id="dash-recent-list" class="space-y-2.5">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. ADD / EDIT TRANSACTION VIEW -->
+            <div id="view-add-transaction" class="view-section p-5 space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('home')" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <h1 id="txn-view-title" class="text-xl font-bold tracking-tight text-white">Record Transaction</h1>
+                    </div>
+                    <button onclick="resetTransactionForm()" class="text-xs text-slate-400 hover:text-white">Clear Form</button>
+                </div>
+
+                <form id="transaction-form" onsubmit="handleTransactionSubmit(event)" class="space-y-4">
+                    <input type="hidden" id="txn-edit-id" value="">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Select Bank Account * <span class="text-[10px] text-brand-400 font-normal">(Maintained Separately)</span></label>
+                        <select id="txn-bank-account" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Category / Particulars *</label>
+                            <button type="button" onclick="promptCustomParticular()" class="text-xs text-brand-400 font-medium hover:underline">+ Add Custom</button>
+                        </div>
+                        <select id="txn-particulars" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Date * <span class="text-[10px] text-slate-400 font-normal">Format: DD-MM-YYYY (Month MM must be 01 to 12)</span></label>
+                        <input type="text" id="txn-datetime" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500" placeholder="24-10-2026">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Merchant Name *</label>
+                        <input type="text" id="txn-name" required placeholder="e.g. Acme Corp" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Mobile Number <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                        <input type="tel" id="txn-mobile" placeholder="e.g. +91 9876543210" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between items-center mb-1">
+                            <label class="text-xs font-semibold text-slate-300">Application Name *</label>
+                            <button type="button" onclick="promptCustomTxnType()" class="text-xs text-brand-400 font-medium hover:underline">+ Add Custom</button>
+                        </div>
+                        <select id="txn-type" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <!-- Populated dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Amount (₹) *</label>
+                            <input type="number" step="0.01" min="0.01" id="txn-amount" required placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Dr./Cr. Format *</label>
+                            <select id="txn-drcr" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                                <option value="Dr">Dr. (Payment / Expense)</option>
+                                <option value="Cr">Cr. (Receipt / Income)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Transaction ID <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                        <div class="flex space-x-2">
+                            <input type="text" id="txn-id" placeholder="e.g. TXN987654321" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                            <button type="button" onclick="generateRandomTxnId()" class="bg-slate-800 border border-slate-700 px-3.5 py-2.5 rounded-xl text-xs text-slate-300 hover:bg-slate-700">Generate</button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Remarks <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                        <textarea id="txn-remarks" rows="2" placeholder="Add notes or memo..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" id="txn-submit-btn" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl shadow-lg transition duration-200">Save Transaction</button>
+                </form>
+            </div>
+
+            <!-- 3. BANK ACCOUNTS VIEW -->
+            <div id="view-accounts" class="view-section p-5 space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('home')" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight text-white">Bank Accounts</h1>
+                            <p class="text-xs text-slate-400">All Nationalised & Private Banks with Branch & IFSC</p>
+                        </div>
+                    </div>
+                    <button onclick="openAddBankModal()" class="bg-brand-600 hover:bg-brand-500 text-white px-3.5 py-2 rounded-xl text-xs font-semibold shadow-md transition flex items-center space-x-1.5">
+                        <i data-lucide="plus" class="w-4 h-4"></i>
+                        <span>Add Bank</span>
+                    </button>
+                </div>
+
+                <div id="accounts-list-container" class="space-y-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+            <!-- 4. AI INTELLIGENT SCANNER VIEW -->
+            <div id="view-scan" class="view-section p-5 space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('home')" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <div>
+                            <div class="flex items-center space-x-2">
+                                <h1 class="text-xl font-bold tracking-tight text-white">AI Intelligent Scanner</h1>
+                                <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center space-x-1">
+                                    <i data-lucide="sparkles" class="w-3 h-3"></i><span>AI Powered</span>
+                                </span>
+                            </div>
+                            <p class="text-xs text-slate-400">AI-driven auto-extraction with manual review for missing data</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border-2 border-dashed border-slate-700 hover:border-brand-500 rounded-3xl p-6 text-center space-y-3 bg-slate-900/50 transition">
+                    <div class="w-14 h-14 bg-indigo-500/10 text-indigo-400 rounded-2xl mx-auto flex items-center justify-center">
+                        <i data-lucide="scan-line" class="w-7 h-7"></i>
+                    </div>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Upload Receipt Screenshot</h4>
+                        <p id="ocr-status-text" class="text-xs text-slate-400 mt-0.5">AI Engine ready to extract exact info</p>
+                    </div>
+                    <input type="file" id="ocr-file-input" accept="image/*" class="hidden" onchange="handleAdvancedAIOCRScan(event)">
+                    <button onclick="document.getElementById('ocr-file-input').click()" class="bg-brand-600 hover:bg-brand-500 text-white text-xs font-semibold px-5 py-2.5 rounded-xl shadow transition flex items-center justify-center mx-auto space-x-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i><span>Upload & AI Scan</span>
+                    </button>
+                </div>
+
+                <div class="space-y-3">
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider">Paste Statement / Receipt Text</h3>
+                    <textarea id="raw-ocr-text" rows="4" placeholder="e.g. Money Received ₹5,000 From Merchant..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 resize-none"></textarea>
+                    <button onclick="processAIOCRText()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                        <i data-lucide="sparkles" class="w-4 h-4"></i><span>AI Extract & Review</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 5. ADVANCED ANALYTICS & REPORTING VIEW -->
+            <div id="view-analytics" class="view-section p-5 space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('home')" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <div>
+                            <h1 class="text-xl font-bold tracking-tight text-white">Advanced Analytics</h1>
+                            <p class="text-xs text-slate-400">Time-series, multidimensional & cross-sectional reports</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Export & Print Action Buttons -->
+                <div class="flex space-x-2">
+                    <button onclick="openMasterStatementModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white py-2.5 px-3 rounded-xl text-xs font-semibold shadow flex items-center justify-center space-x-1.5 transition">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                        <span>Master Statement Report</span>
+                    </button>
+                    <button onclick="printReport()" class="flex-1 bg-brand-600 hover:bg-brand-500 text-white py-2.5 px-3 rounded-xl text-xs font-semibold shadow flex items-center justify-center space-x-1.5 transition">
+                        <i data-lucide="printer" class="w-4 h-4"></i>
+                        <span>Print Report</span>
+                    </button>
+                </div>
+
+                <!-- Analysis Mode Toggle -->
+                <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl">
+                    <button onclick="setAnalyticsMode('standard')" id="mode-btn-standard" class="flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-600 text-white transition">Standard Analysis</button>
+                    <button onclick="setAnalyticsMode('cross')" id="mode-btn-cross" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition">Cross-Sectional (Period vs Period)</button>
+                </div>
+
+                <!-- Standard Time-Series Filter Tabs -->
+                <div id="standard-timeframe-container" class="space-y-3">
+                    <div class="flex space-x-1.5 overflow-x-auto no-scrollbar pb-1">
+                        <button onclick="setAnalyticsTimeframe('all')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white transition whitespace-nowrap">All Time</button>
+                        <button onclick="setAnalyticsTimeframe('oneday')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">One Day</button>
+                        <button onclick="setAnalyticsTimeframe('datewise')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">Date-wise</button>
+                        <button onclick="setAnalyticsTimeframe('weekly')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">Weekly</button>
+                        <button onclick="setAnalyticsTimeframe('monthly')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">Monthly</button>
+                        <button onclick="setAnalyticsTimeframe('quarterly')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">Quarterly</button>
+                        <button onclick="setAnalyticsTimeframe('yearly')" class="analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap">Yearly</button>
+                    </div>
+
+                    <div id="datewise-picker-container" class="bg-slate-900 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between hidden">
+                        <div class="flex items-center space-x-2">
+                            <i data-lucide="calendar" class="w-4 h-4 text-brand-400"></i>
+                            <span class="text-xs font-semibold text-slate-300">Select Date (DD-MM-YYYY):</span>
+                        </div>
+                        <input type="text" id="analytics-target-date" onchange="renderAnalytics()" class="bg-slate-800 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-brand-500 w-32 text-center" placeholder="24-10-2026">
+                    </div>
+                </div>
+
+                <!-- Cross-Sectional Analysis Selectors -->
+                <div id="cross-sectional-container" class="bg-slate-900 border border-slate-800 p-4 rounded-2xl space-y-3 hidden">
+                    <h4 class="text-xs font-bold text-white flex items-center space-x-1.5">
+                        <i data-lucide="git-compare" class="w-4 h-4 text-brand-400"></i>
+                        <span>Compare Between Two Times (Cross-Sectional)</span>
+                    </h4>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Period A (Base)</label>
+                            <select id="cross-period-a" onchange="renderAnalytics()" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                <option value="current_month">This Month</option>
+                                <option value="last_month">Last Month</option>
+                                <option value="last_7_days">Last 7 Days</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 mb-1">Period B (Compare)</label>
+                            <select id="cross-period-b" onchange="renderAnalytics()" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-brand-500">
+                                <option value="last_month" selected>Last Month</option>
+                                <option value="current_month">This Month</option>
+                                <option value="last_7_days">Last 7 Days</option>
+                                <option value="this_year">This Year</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Summary Totals -->
+                <div class="grid grid-cols-3 gap-2.5">
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                        <p class="text-[9px] text-slate-400 uppercase font-semibold">Inflow (Cr.)</p>
+                        <p id="analytics-total-cr" class="text-sm font-bold text-emerald-400 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                        <p class="text-[9px] text-slate-400 uppercase font-semibold">Outflow (Dr.)</p>
+                        <p id="analytics-total-dr" class="text-sm font-bold text-rose-400 mt-1">₹0.00</p>
+                    </div>
+                    <div class="bg-slate-900 border border-slate-800 p-3 rounded-2xl">
+                        <p class="text-[9px] text-slate-400 uppercase font-semibold">Net Income</p>
+                        <p id="analytics-net-income" class="text-sm font-bold text-indigo-400 mt-1">₹0.00</p>
+                    </div>
+                </div>
+
+                <!-- Dimension Tab Selectors -->
+                <div class="flex bg-slate-900 border border-slate-800 p-1 rounded-2xl">
+                    <button onclick="setAnalyticsDimension('category')" id="dim-btn-category" class="flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-600 text-white transition">Category-wise</button>
+                    <button onclick="setAnalyticsDimension('account')" id="dim-btn-account" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition">Account-wise</button>
+                    <button onclick="setAnalyticsDimension('application')" id="dim-btn-application" class="flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition">Application-wise</button>
+                </div>
+
+                <!-- Breakdown List -->
+                <div class="bg-slate-900 border border-slate-800 p-5 rounded-2xl space-y-4">
+                    <h3 id="analytics-breakdown-title" class="text-sm font-bold text-white">Expense Breakdown by Category</h3>
+                    <p class="text-[10px] text-slate-400 -mt-2">Tap any item to view corresponding transactions</p>
+                    <div id="analytics-breakdown-list" class="space-y-3">
+                        <!-- Populated dynamically -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 6. GLOBAL SEARCH VIEW -->
+            <div id="view-search" class="view-section p-5 space-y-6 hidden">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <button onclick="switchView('home')" class="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-300 hover:bg-slate-700 transition">
+                            <i data-lucide="arrow-left" class="w-5 h-5"></i>
+                        </button>
+                        <h1 class="text-xl font-bold tracking-tight text-white">Search Transactions</h1>
+                    </div>
+                </div>
+
+                <div class="flex space-x-2">
+                    <div class="relative flex-1">
+                        <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5"></i>
+                        <input type="text" id="global-search-input" oninput="renderSearchList()" placeholder="Search by merchant, particulars, ID, mobile..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                    <button onclick="openMasterStatementModal()" class="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-2.5 rounded-xl text-xs font-semibold shadow flex items-center space-x-1 transition" title="Master Statement">
+                        <i data-lucide="file-spreadsheet" class="w-4 h-4"></i>
+                    </button>
+                </div>
+
+                <div id="search-results-list" class="space-y-2.5">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Navigation Bar -->
+        <div id="bottom-nav" class="absolute bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 px-6 py-3 flex justify-between items-center z-30 no-print">
+            <button onclick="switchView('home')" id="nav-btn-home" class="nav-btn flex flex-col items-center text-brand-400 transition">
+                <i data-lucide="home" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">Home</span>
+            </button>
+            <button onclick="switchView('add-transaction')" id="nav-btn-add-transaction" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="plus-circle" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">Record</span>
+            </button>
+            <button onclick="openVoiceModal()" id="nav-btn-voice" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="mic" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">Voice</span>
+            </button>
+            <button onclick="switchView('scan')" id="nav-btn-scan" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="scan" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">AI Scan</span>
+            </button>
+            <button onclick="switchView('analytics')" id="nav-btn-analytics" class="nav-btn flex flex-col items-center text-slate-400 hover:text-slate-200 transition">
+                <i data-lucide="pie-chart" class="w-5 h-5"></i>
+                <span class="text-[10px] mt-1 font-medium">Reports</span>
+            </button>
+        </div>
+
+    </div>
+
+    <!-- Google Account & Cloud Sync Modal -->
+    <div id="modal-cloud-sync" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-base font-bold text-white">Google Cloud & Device Storage</h3>
+                </div>
+                <button onclick="closeCloudSyncModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-4 text-xs">
+                <div id="google-auth-card" class="bg-slate-950 border border-slate-800 p-4 rounded-2xl flex items-center justify-between">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center text-slate-900 font-bold text-base shadow">G</div>
+                        <div>
+                            <p id="google-user-email" class="font-bold text-white">Not Connected</p>
+                            <p class="text-[10px] text-slate-400">Sync with Google Account</p>
+                        </div>
+                    </div>
+                    <button id="google-auth-btn" onclick="toggleGoogleAuth()" class="bg-brand-600 hover:bg-brand-500 text-white font-semibold px-3.5 py-2 rounded-xl text-xs transition">Sign In</button>
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <p class="font-semibold text-slate-300">Cloud & Device Options:</p>
+                    
+                    <button onclick="backupDataToCloudJSON()" class="w-full bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl flex items-center justify-between transition">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="cloud-upload" class="w-4 h-4 text-emerald-400"></i>
+                            <span class="font-medium">Backup / Export Database (JSON)</span>
+                        </div>
+                        <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+                    </button>
+
+                    <div class="relative">
+                        <input type="file" id="restore-json-input" accept=".json" class="hidden" onchange="restoreDataFromCloudJSON(event)">
+                        <button onclick="document.getElementById('restore-json-input').click()" class="w-full bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl flex items-center justify-between transition">
+                            <div class="flex items-center space-x-2.5">
+                                <i data-lucide="cloud-download" class="w-4 h-4 text-indigo-400"></i>
+                                <span class="font-medium">Restore Data from Backup File</span>
+                            </div>
+                            <i data-lucide="upload" class="w-4 h-4 text-slate-400"></i>
+                        </button>
+                    </div>
+
+                    <button onclick="openMasterStatementModal()" class="w-full bg-slate-800 hover:bg-slate-700 text-white p-3 rounded-xl flex items-center justify-between transition">
+                        <div class="flex items-center space-x-2.5">
+                            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-400"></i>
+                            <span class="font-medium">Master Statement Report (.xls)</span>
+                        </div>
+                        <i data-lucide="download" class="w-4 h-4 text-slate-400"></i>
+                    </button>
+                </div>
+            </div>
+
+            <button type="button" onclick="closeCloudSyncModal()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl text-xs transition shadow">Done</button>
+        </div>
+    </div>
+
+    <!-- Transaction Details Inspection Modal -->
+    <div id="modal-txn-details" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl relative">
+            <div class="flex justify-between items-center border-b border-slate-800 pb-3">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-base font-bold text-white">Transaction Details</h3>
+                    <span id="detail-drcr-badge" class="px-2 py-0.5 rounded-full text-[10px] font-semibold">Cr</span>
+                </div>
+                <button onclick="closeTxnDetailsModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3.5 text-xs">
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Merchant Name:</span>
+                    <span id="detail-name" class="font-bold text-white">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Mobile Number:</span>
+                    <span id="detail-mobile" class="font-mono text-indigo-300">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Category:</span>
+                    <span id="detail-particulars" class="font-medium text-slate-200">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Amount:</span>
+                    <span id="detail-amount" class="font-bold text-base text-white">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Bank Name:</span>
+                    <span id="detail-bank-name" class="font-medium text-amber-300">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Account Holder Name:</span>
+                    <span id="detail-acc-name" class="font-medium text-indigo-400">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Account Number:</span>
+                    <span id="detail-acc-no" class="font-mono text-slate-300">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Application Name:</span>
+                    <span id="detail-app-source" class="font-medium text-slate-200">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Date:</span>
+                    <span id="detail-date" class="font-medium text-slate-300">---</span>
+                </div>
+                <div class="flex justify-between py-1 border-b border-slate-800/60">
+                    <span class="text-slate-400">Transaction ID:</span>
+                    <span id="detail-txn-id" class="font-mono text-slate-400">---</span>
+                </div>
+                <div class="flex flex-col py-1 space-y-1">
+                    <span class="text-slate-400">Remarks:</span>
+                    <p id="detail-remarks" class="text-slate-300 italic bg-slate-950 p-2.5 rounded-xl border border-slate-800">---</p>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button type="button" onclick="editTransactionFromDetails()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">Edit Transaction</button>
+                <button type="button" onclick="closeTxnDetailsModal()" class="bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow">Done</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Account Transactions Inspection & Statement View Modal -->
+    <div id="modal-account-inspect" class="fixed inset-0 bg-black/85 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-4 hidden no-print">
+        <div class="bg-white text-slate-900 border-2 border-slate-400 rounded-3xl w-full max-w-2xl p-5 space-y-4 shadow-2xl max-h-[92vh] flex flex-col overflow-hidden" style="font-family: 'Times New Roman', Times, serif;">
+            
+            <div class="flex justify-between items-start border-b-2 border-slate-800 pb-3">
+                <div>
+                    <h2 id="statement-header-title" class="text-base font-bold tracking-tight text-slate-900 uppercase">STATEMENT OF ACCOUNTS</h2>
+                    <p id="statement-account-meta" class="text-xs font-bold text-indigo-900 mt-1">Account Holder: --- | Account No: --- | IFSC: --- | Branch: ---</p>
+                    <p id="statement-header-subtitle" class="text-[11px] text-slate-600 mt-0.5">Generated on: 24-10-2026 | Commerce Financial Engine</p>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span class="bg-amber-300 text-slate-950 text-[10px] font-bold px-2 py-1 rounded border border-amber-500 uppercase">Official Report</span>
+                    <button onclick="closeAccountInspectModal()" class="text-slate-600 hover:text-black">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2 bg-slate-100 p-3 rounded-xl border border-slate-300 no-print">
+                <div class="relative">
+                    <i data-lucide="search" class="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5"></i>
+                    <input type="text" id="statement-search-input" oninput="updateAccountInspectionView()" placeholder="Search in statement..." class="w-full bg-white border border-slate-400 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 focus:outline-none">
+                </div>
+
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-slate-800">Period Classification:</span>
+                    <select id="account-report-filter" onchange="updateAccountInspectionView()" class="bg-white border border-slate-400 rounded-lg px-2.5 py-1 text-xs text-slate-900 font-semibold focus:outline-none">
+                        <option value="all">All Time (Complete)</option>
+                        <option value="daily">Daily</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="monthly">Monthly</option>
+                        <option value="quarterly">Quarterly</option>
+                        <option value="half_yearly">Half Yearly</option>
+                        <option value="financial_yearly">Financial Yearly (April-March)</option>
+                        <option value="yearly">Calendar Yearly</option>
+                        <option value="between_periods">Between Periods (Custom)</option>
+                    </select>
+                </div>
+
+                <div id="between-periods-container" class="grid grid-cols-2 gap-2 pt-1 hidden">
+                    <div>
+                        <label class="block text-[10px] text-slate-600 mb-0.5">From Date (DD-MM-YYYY)</label>
+                        <input type="text" id="report-from-date" onchange="updateAccountInspectionView()" placeholder="01-04-2026" class="w-full bg-white border border-slate-400 rounded px-2 py-1 text-xs">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] text-slate-600 mb-0.5">To Date (DD-MM-YYYY)</label>
+                        <input type="text" id="report-to-date" onchange="updateAccountInspectionView()" placeholder="31-03-2027" class="w-full bg-white border border-slate-400 rounded px-2 py-1 text-xs">
+                    </div>
+                </div>
+
+                <div class="flex space-x-2 pt-1">
+                    <button id="inspect-download-btn" onclick="" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white py-1.5 px-2 rounded text-xs font-bold shadow flex items-center justify-center space-x-1">
+                        <i data-lucide="file-spreadsheet" class="w-3.5 h-3.5"></i>
+                        <span>Download Excel (.xls)</span>
+                    </button>
+                    <button id="inspect-print-btn" onclick="" class="flex-1 bg-indigo-700 hover:bg-indigo-800 text-white py-1.5 px-2 rounded text-xs font-bold shadow flex items-center justify-center space-x-1">
+                        <i data-lucide="printer" class="w-3.5 h-3.5"></i>
+                        <span>Print Official Statement</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="overflow-y-auto flex-1 rounded-lg border border-slate-400 bg-white p-1">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs border-collapse" style="font-family: 'Times New Roman', Times, serif;">
+                        <thead>
+                            <tr class="bg-amber-300 text-slate-950 font-bold border border-slate-400">
+                                <th class="p-2 border border-slate-400 text-center">S.No</th>
+                                <th class="p-2 border border-slate-400">Date (DD-MM-YYYY-DAY)</th>
+                                <th id="th-bankname-col" class="p-2 border border-slate-400 hidden">Bank Name</th>
+                                <th id="th-account-col" class="p-2 border border-slate-400 hidden">Account Holder Name</th>
+                                <th id="th-accno-col" class="p-2 border border-slate-400 hidden">Account Number</th>
+                                <th class="p-2 border border-slate-400">Category</th>
+                                <th class="p-2 border border-slate-400">Application Name</th>
+                                <th class="p-2 border border-slate-400">Merchant Name</th>
+                                <th class="p-2 border border-slate-400 text-right">Dr./Cr. Amount</th>
+                                <th class="p-2 border border-slate-400 text-right">Closing Balance</th>
+                                <th class="p-2 border border-slate-400 text-center no-print">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody id="inspect-statement-table-body" class="divide-y divide-slate-300">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="flex justify-between items-center text-xs font-bold text-slate-800 border-t border-slate-300 pt-2 px-1">
+                <span id="statement-total-records">Total Records: 0</span>
+                <span id="statement-net-sum">Net Balance Sum: ₹0.00</span>
+            </div>
+
+            <button type="button" onclick="closeAccountInspectModal()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-bold py-2 rounded-xl text-xs transition shadow no-print">Close Statement</button>
+        </div>
+    </div>
+
+    <!-- Enhanced Voice Recording Modal -->
+    <div id="modal-voice-txn" class="fixed inset-0 bg-black/75 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-5 shadow-2xl text-center relative overflow-hidden">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-base font-bold text-white">Voice Assistant</h3>
+                    <span class="bg-rose-500/20 text-rose-400 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center space-x-1">
+                        <i data-lucide="mic" class="w-3 h-3"></i><span>Interactive AI</span>
+                    </span>
+                </div>
+                <button onclick="closeVoiceModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="relative py-4 flex items-center justify-center">
+                <div class="absolute w-20 h-20 rounded-full bg-rose-500/20 animate-pulse-ring"></div>
+                <div class="w-16 h-16 rounded-full bg-gradient-to-br from-rose-500 to-brand-600 flex items-center justify-center text-white shadow-xl relative z-10">
+                    <i data-lucide="mic" class="w-7 h-7 animate-bounce"></i>
+                </div>
+            </div>
+
+            <div>
+                <p id="voice-prompt-title" class="text-sm font-bold text-white">Listening for transaction details...</p>
+                <p id="voice-prompt-instruction" class="text-xs text-slate-400 mt-1">Speak Amount, Merchant, Date, Category, and App</p>
+            </div>
+
+            <div class="bg-slate-950 border border-slate-800 p-3 rounded-2xl text-left min-h-[60px]">
+                <p class="text-[10px] uppercase font-semibold text-slate-500 mb-1">Captured Speech:</p>
+                <p id="voice-transcript-output" class="text-xs font-mono text-indigo-300">Say e.g. "Paid 450 to Store on 24-10-2026 via PhonePe for Food & Dining"</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="stopVoiceListening()" class="bg-slate-800 hover:bg-slate-700 text-white font-semibold py-2.5 rounded-xl text-xs transition">Cancel</button>
+                <button type="button" onclick="simulateVoiceSpeechInput()" class="bg-brand-600 hover:bg-brand-500 text-white font-semibold py-2.5 rounded-xl text-xs transition shadow">Simulate Voice</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Scanner Review Modal -->
+    <div id="modal-ocr-review" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <h3 class="text-base font-bold text-white">Review & Complete Data</h3>
+                    <span class="bg-indigo-500/20 text-indigo-400 text-[10px] font-semibold px-2 py-0.5 rounded-full flex items-center space-x-1">
+                        <i data-lucide="sparkles" class="w-3 h-3"></i><span>AI & Manual</span>
+                    </span>
+                </div>
+                <button onclick="closeOcrReviewModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            
+            <div id="missing-info-warning" class="bg-amber-500/10 border border-amber-500/30 p-3 rounded-xl hidden">
+                <p class="text-xs font-semibold text-amber-400 flex items-center space-x-1.5">
+                    <i data-lucide="alert-circle" class="w-4 h-4"></i>
+                    <span>Some info was missing. Please fill manually below:</span>
+                </p>
+            </div>
+
+            <p class="text-xs text-slate-400">Verify extracted details or fill missing information:</p>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Select Bank Account * <span class="text-[10px] text-brand-400 font-normal">(Maintained Separately)</span></label>
+                    <select id="ocr-rev-bank" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-300">Category / Particulars *</label>
+                        <button type="button" onclick="promptCustomParticular()" class="text-xs text-brand-400 font-medium hover:underline">+ Add Custom</button>
+                    </div>
+                    <select id="ocr-rev-particulars" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Merchant Name *</label>
+                    <input type="text" id="ocr-rev-name" placeholder="Enter merchant name..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Mobile Number <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                    <input type="tel" id="ocr-rev-mobile" placeholder="e.g. +91 9876543210" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Amount (₹) *</label>
+                    <input type="number" step="0.01" id="ocr-rev-amount" placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Dr./Cr. Format *</label>
+                    <select id="ocr-rev-drcr" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <option value="Dr">Dr. (Payment / Expense)</option>
+                        <option value="Cr">Cr. (Receipt / Income)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Date * <span class="text-[10px] text-slate-400 font-normal">(DD-MM-YYYY - Month MM: 01-12)</span></label>
+                    <input type="text" id="ocr-rev-datetime" placeholder="DD-MM-YYYY" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="text-xs font-semibold text-slate-300">Application Name *</label>
+                        <button type="button" onclick="promptCustomTxnType()" class="text-xs text-brand-400 font-medium hover:underline">+ Add Custom</button>
+                    </div>
+                    <select id="ocr-rev-type" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Transaction ID <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                    <div class="flex space-x-2">
+                        <input type="text" id="ocr-rev-txn-id" placeholder="e.g. TXN987654321" class="flex-1 bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <button type="button" onclick="generateOcrRevTxnId()" class="bg-slate-800 border border-slate-700 px-3 py-2 rounded-xl text-xs text-slate-300 hover:bg-slate-700">Generate</button>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Remarks <span class="text-[10px] text-slate-400 font-normal">(Optional)</span></label>
+                    <input type="text" id="ocr-rev-remarks" placeholder="Add notes..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="button" onclick="confirmOcrReview()" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-semibold py-3 rounded-xl shadow-lg transition flex items-center justify-center space-x-2">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i><span>Confirm & Record to Account</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Profile Picture & Details Modal -->
+    <div id="modal-profile" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 class="text-base font-bold text-white">Edit Profile & Avatar</h3>
+                <button onclick="closeProfileModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <div class="flex flex-col items-center space-y-2">
+                    <div class="w-20 h-20 rounded-full bg-brand-500/20 border-2 border-brand-500 overflow-hidden flex items-center justify-center text-brand-400 text-2xl font-bold relative">
+                        <img id="modal-avatar-preview" src="" alt="Avatar" class="w-full h-full object-cover hidden">
+                        <span id="modal-avatar-initials">U</span>
+                    </div>
+                    <input type="file" id="profile-pic-input" accept="image/*" class="hidden" onchange="handleProfilePicUpload(event)">
+                    <button type="button" onclick="document.getElementById('profile-pic-input').click()" class="bg-slate-800 border border-slate-700 text-xs text-slate-200 px-4 py-2 rounded-xl hover:bg-slate-700 transition">Upload Photo</button>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Account Holder Name *</label>
+                    <input type="text" id="profile-name-input" placeholder="e.g. Alex Morgan" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="button" onclick="saveProfile()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl shadow-lg transition">Save Profile</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add / Edit Bank Modal -->
+    <div id="modal-add-bank" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 id="bank-modal-title" class="text-base font-bold text-white">Add Bank Account</h3>
+                <button onclick="closeAddBankModal()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <form id="bank-form" onsubmit="handleBankSubmit(event)" class="space-y-3">
+                <input type="hidden" id="bank-edit-id" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Account Holder Name *</label>
+                    <input type="text" id="bank-nickname" required placeholder="e.g. John Doe" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Bank Type *</label>
+                    <select id="bank-type-select" onchange="onBankTypeChanged()" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <!-- Populated dynamically -->
+                    </select>
+                </div>
+                <div>
+                    <div class="flex justify-between items-center mb-1">
+                        <label class="block text-xs font-semibold text-slate-300">Bank Name / Institution *</label>
+                        <button type="button" onclick="promptCustomBankName()" class="text-xs text-brand-400 font-medium hover:underline">+ Add Custom Name</button>
+                    </div>
+                    <select id="bank-name-select" required class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                        <!-- Populated dynamically as per bank type -->
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">Account Number *</label>
+                        <input type="text" id="bank-acc-no" required placeholder="e.g. 4189999" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-300 mb-1">IFSC Code <span class="text-[10px] text-brand-400">(Optional)</span></label>
+                        <input type="text" id="bank-ifsc" oninput="onIfscInputChanged()" placeholder="e.g. SBIN0001234" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500 uppercase font-mono">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Branch Name <span class="text-[10px] text-slate-400">(Auto-fetched or Manual)</span></label>
+                    <input type="text" id="bank-branch" placeholder="e.g. Main Branch, Bhubaneswar" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Initial Balance (₹) *</label>
+                    <input type="number" step="0.01" id="bank-balance" required placeholder="0.00" class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="submit" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl shadow-lg transition duration-200 mt-2">Save Bank Account</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Prompt Modal -->
+    <div id="modal-custom-prompt" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden no-print">
+        <div class="bg-slate-900 border border-slate-800 rounded-3xl w-full max-w-sm p-6 space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h3 id="custom-modal-title" class="text-base font-bold text-white">Add Custom Option</h3>
+                <button onclick="closeCustomPrompt()" class="text-slate-400 hover:text-white">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="space-y-3">
+                <div>
+                    <label id="custom-modal-label" class="block text-xs font-semibold text-slate-300 mb-1">New Value *</label>
+                    <input type="text" id="custom-modal-input" placeholder="Enter value..." class="w-full bg-slate-800 border border-slate-700 rounded-xl px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-brand-500">
+                </div>
+                <button type="button" onclick="confirmCustomPrompt()" class="w-full bg-brand-600 hover:bg-brand-500 text-white font-semibold py-3 rounded-xl shadow-lg transition duration-200">Add Option</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Area -->
+    <div id="toast" class="absolute top-16 left-1/2 transform -translate-x-1/2 bg-slate-800 text-white text-xs font-medium px-4 py-2.5 rounded-2xl shadow-2xl border border-slate-700 transition-all duration-300 opacity-0 pointer-events-none z-50 flex items-center space-x-2 no-print">
+        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i>
+        <span id="toast-msg">Success</span>
+    </div>
+
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        let appData = {
+            banks: JSON.parse(localStorage.getItem('finvibe_banks')) || [],
+            transactions: JSON.parse(localStorage.getItem('finvibe_transactions')) || [],
+            particularsList: JSON.parse(localStorage.getItem('finvibe_particulars')) || [
+                'Electricity Bill', 'Mobile Recharge', 'Food & Dining', 'Rent Payment', 'Salary & Income', 'General Payment', 'General Receipt'
+            ],
+            bankTypesList: [
+                'Public Sector Bank (Nationalised - 12)', 'Private Sector Bank (21)', 'Foreign Bank', 'Cooperative Bank', 'Digital Wallet / PPI', 'Credit Card Account', 'Other Financial Institution'
+            ],
+            bankNamesMap: {
+                'Public Sector Bank (Nationalised - 12)': [
+                    'State Bank of India (SBI)', 'Punjab National Bank (PNB)', 'Bank of Baroda (BOB)', 'Canara Bank', 'Union Bank of India', 'Bank of India', 'Indian Bank', 'Central Bank of India', 'Indian Overseas Bank', 'UCO Bank', 'Bank of Maharashtra', 'Punjab & Sind Bank'
+                ],
+                'Private Sector Bank (21)': [
+                    'HDFC Bank', 'ICICI Bank', 'Axis Bank', 'Kotak Mahindra Bank', 'IndusInd Bank', 'Federal Bank', 'IDFC First Bank', 'Yes Bank', 'RBL Bank', 'Bandhan Bank', 'City Union Bank', 'DCB Bank', 'Dhanlaxmi Bank', 'Jammu & Kashmir Bank', 'Karnataka Bank', 'Karur Vysya Bank', 'Nainital Bank', 'South Indian Bank', 'Tamilnad Mercantile Bank', 'IDBI Bank', 'CSB Bank'
+                ],
+                'Foreign Bank': ['Standard Chartered Bank', 'Citibank', 'HSBC Bank', 'DBS Bank', 'Deutsche Bank'],
+                'Cooperative Bank': ['Saraswat Cooperative Bank', 'Cosmos Bank', 'Shamrao Vithal Co-operative Bank (SVC)', 'TNSC Bank'],
+                'Digital Wallet / PPI': ['Paytm Wallet', 'PhonePe Wallet', 'Amazon Pay Balance', 'Mobikwik Wallet', 'Freecharge', 'Airtel Payments Bank'],
+                'Credit Card Account': ['SBI Credit Card', 'HDFC Credit Card', 'ICICI Credit Card', 'Axis Credit Card', 'Amex Credit Card'],
+                'Other Financial Institution': ['Post Office Savings', 'Muthoot Finance', 'Manappuram Finance', 'Custom Institution']
+            },
+            customBankNames: JSON.parse(localStorage.getItem('finvibe_custom_banks')) || [],
+            txnTypesList: JSON.parse(localStorage.getItem('finvibe_types')) || [
+                'UPI (Google Pay)', 'UPI (PhonePe)', 'UPI (Paytm)', 'UPI (Amazon Pay)', 'UPI (BHIM)', 'Wallet (Paytm Wallet)', 'Wallet (Amazon Pay)', 'Debit Card / ATM Card', 'Credit Card', 'Bank Transfer', 'RTGS', 'NEFT', 'IMPS', 'Net Banking', 'Own account transfer', 'Other'
+            ],
+            themeMode: localStorage.getItem('finvibe_theme') || 'dark',
+            profileName: localStorage.getItem('finvibe_pro_name') || 'User Account',
+            profileAvatar: localStorage.getItem('finvibe_pro_avatar') || '',
+            googleUserEmail: localStorage.getItem('finvibe_google_email') || ''
+        };
+
+        function getBankTypeBadgeSVG(type, bankName) {
+            let bg = 'bg-blue-500/20 text-blue-400';
+            let iconName = 'landmark';
+            if (type && type.includes('Public')) { bg = 'bg-indigo-500/20 text-indigo-400'; iconName = 'shield'; }
+            else if (type && type.includes('Private')) { bg = 'bg-amber-500/20 text-amber-400'; iconName = 'award'; }
+            else if (type && type.includes('Wallet')) { bg = 'bg-emerald-500/20 text-emerald-400'; iconName = 'smartphone'; }
+            else if (type && type.includes('Credit Card')) { bg = 'bg-purple-500/20 text-purple-400'; iconName = 'credit-card'; }
+            else if (type && type.includes('Foreign')) { bg = 'bg-rose-500/20 text-rose-400'; iconName = 'globe'; }
+            
+            return `<div class="w-10 h-10 rounded-2xl ${bg} flex items-center justify-center shrink-0 shadow-inner"><i data-lucide="${iconName}" class="w-5 h-5"></i></div>`;
+        }
+
+        let currentAnalyticsTimeframe = 'all';
+        let currentAnalyticsDimension = 'category';
+        let currentAnalyticsMode = 'standard';
+        let customPromptTarget = null;
+        let speechRecognitionInstance = null;
+        let selectedInspectionTxnId = null;
+        let currentInspectedBankId = null;
+
+        window.onload = function() {
+            setThemeMode(appData.themeMode);
+            updateProfileUI();
+            updateGoogleAuthUI();
+            lucide.createIcons();
+            updateLiveClock();
+            setInterval(updateLiveClock, 30000);
+            
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            const datepickerEl = document.getElementById('analytics-target-date');
+            if (datepickerEl) datepickerEl.value = `${dd}-${mm}-${yyyy}`;
+
+            document.getElementById('report-from-date').value = `01-${mm}-${yyyy}`;
+            document.getElementById('report-to-date').value = `${dd}-${mm}-${yyyy}`;
+
+            populateDropdowns();
+            renderDashboard();
+            renderAccounts();
+            renderAnalytics();
+            renderSearchList();
+            setDefaultTimestamp();
+            generateRandomTxnId();
+        };
+
+        function saveData() {
+            localStorage.setItem('finvibe_banks', JSON.stringify(appData.banks));
+            localStorage.setItem('finvibe_transactions', JSON.stringify(appData.transactions));
+            localStorage.setItem('finvibe_particulars', JSON.stringify(appData.particularsList));
+            localStorage.setItem('finvibe_custom_banks', JSON.stringify(appData.customBankNames));
+            localStorage.setItem('finvibe_types', JSON.stringify(appData.txnTypesList));
+            localStorage.setItem('finvibe_theme', appData.themeMode);
+            localStorage.setItem('finvibe_pro_name', appData.profileName);
+            localStorage.setItem('finvibe_pro_avatar', appData.profileAvatar);
+            localStorage.setItem('finvibe_google_email', appData.googleUserEmail);
+        }
+
+        function updateGoogleAuthUI() {
+            const emailEl = document.getElementById('google-user-email');
+            const btnEl = document.getElementById('google-auth-btn');
+            const titleEl = document.getElementById('cloud-status-title');
+            const subtitleEl = document.getElementById('cloud-status-subtitle');
+
+            if (appData.googleUserEmail) {
+                emailEl.textContent = appData.googleUserEmail;
+                btnEl.textContent = 'Sign Out';
+                btnEl.className = "bg-rose-600 hover:bg-rose-500 text-white font-semibold px-3.5 py-2 rounded-xl text-xs transition";
+                titleEl.textContent = 'Google Cloud Connected';
+                subtitleEl.textContent = appData.googleUserEmail;
+                document.getElementById('cloud-action-btn').textContent = 'Manage Cloud';
+            } else {
+                emailEl.textContent = 'Not Connected';
+                btnEl.textContent = 'Sign In';
+                btnEl.className = "bg-brand-600 hover:bg-brand-500 text-white font-semibold px-3.5 py-2 rounded-xl text-xs transition";
+                titleEl.textContent = 'Local Device Storage';
+                subtitleEl.textContent = 'Connect Google Account for Cloud Backup';
+                document.getElementById('cloud-action-btn').textContent = 'Connect';
+            }
+        }
+
+        function toggleGoogleAuth() {
+            if (appData.googleUserEmail) {
+                if (confirm("Sign out from Google account?")) {
+                    appData.googleUserEmail = '';
+                    saveData();
+                    updateGoogleAuthUI();
+                    showToast("Signed out successfully.");
+                }
+            } else {
+                let email = prompt("Enter your Google Account email to link cloud sync:", "user@gmail.com");
+                if (email && email.includes('@')) {
+                    appData.googleUserEmail = email;
+                    saveData();
+                    updateGoogleAuthUI();
+                    showToast("Connected to Google Account successfully!");
+                }
+            }
+        }
+
+        function openCloudSyncModal() {
+            document.getElementById('modal-cloud-sync').classList.remove('hidden');
+            updateGoogleAuthUI();
+            lucide.createIcons();
+        }
+
+        function closeCloudSyncModal() {
+            document.getElementById('modal-cloud-sync').classList.add('hidden');
+        }
+
+        function backupDataToCloudJSON() {
+            const backupPayload = {
+                version: "1.0",
+                timestamp: Date.now(),
+                user: appData.googleUserEmail || 'local_user',
+                banks: appData.banks,
+                transactions: appData.transactions,
+                particularsList: appData.particularsList,
+                customBankNames: appData.customBankNames,
+                txnTypesList: appData.txnTypesList
+            };
+
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(backupPayload, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `FinVibe_Cloud_Backup_${new Date().toISOString().slice(0,10)}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+            showToast("Cloud backup file generated & downloaded!");
+        }
+
+        function restoreDataFromCloudJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed && parsed.banks && parsed.transactions) {
+                        if (confirm("Restore data from backup? This will update your accounts and transactions.")) {
+                            appData.banks = parsed.banks;
+                            appData.transactions = parsed.transactions;
+                            if (parsed.particularsList) appData.particularsList = parsed.particularsList;
+                            if (parsed.customBankNames) appData.customBankNames = parsed.customBankNames;
+                            if (parsed.txnTypesList) appData.txnTypesList = parsed.txnTypesList;
+                            
+                            saveData();
+                            populateDropdowns();
+                            renderDashboard();
+                            renderAccounts();
+                            renderAnalytics();
+                            renderSearchList();
+                            closeCloudSyncModal();
+                            showToast("Data restored successfully from backup!");
+                        }
+                    } else {
+                        showToast("Invalid backup file format.");
+                    }
+                } catch (err) {
+                    console.error(err);
+                    showToast("Failed to parse backup JSON file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function updateProfileUI() {
+            document.getElementById('dash-user-name').textContent = appData.profileName;
+            const initials = appData.profileName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2) || 'U';
+            
+            const avatarImg = document.getElementById('dash-avatar-img');
+            const avatarInitials = document.getElementById('dash-avatar-initials');
+            const modalImg = document.getElementById('modal-avatar-preview');
+            const modalInitials = document.getElementById('modal-avatar-initials');
+
+            if (appData.profileAvatar) {
+                avatarImg.src = appData.profileAvatar;
+                avatarImg.classList.remove('hidden');
+                avatarInitials.classList.add('hidden');
+                modalImg.src = appData.profileAvatar;
+                modalImg.classList.remove('hidden');
+                modalInitials.classList.add('hidden');
+            } else {
+                avatarImg.classList.add('hidden');
+                avatarInitials.classList.remove('hidden');
+                avatarInitials.textContent = initials;
+                modalImg.classList.add('hidden');
+                modalInitials.classList.remove('hidden');
+                modalInitials.textContent = initials;
+            }
+        }
+
+        function openProfileModal() {
+            document.getElementById('profile-name-input').value = appData.profileName;
+            document.getElementById('modal-profile').classList.remove('hidden');
+        }
+
+        function closeProfileModal() {
+            document.getElementById('modal-profile').classList.add('hidden');
+        }
+
+        function handleProfilePicUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                appData.profileAvatar = e.target.result;
+                updateProfileUI();
+                showToast("Profile picture updated!");
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function saveProfile() {
+            const name = document.getElementById('profile-name-input').value.trim();
+            if (name) appData.profileName = name;
+            saveData();
+            updateProfileUI();
+            closeProfileModal();
+            showToast("Profile saved successfully!");
+        }
+
+        function toggleThemeDropdown() {
+            const dropdown = document.getElementById('theme-dropdown');
+            dropdown.classList.toggle('hidden');
+        }
+
+        function setThemeMode(mode) {
+            appData.themeMode = mode;
+            saveData();
+            document.getElementById('theme-dropdown').classList.add('hidden');
+
+            const body = document.getElementById('app-body');
+            const container = document.getElementById('app-container');
+            const icon = document.getElementById('current-theme-icon');
+
+            if (mode === 'light') {
+                body.className = "bg-slate-200 text-slate-800 h-full flex items-center justify-center p-0 sm:p-4 transition-colors duration-300";
+                container.className = "w-full sm:max-w-[420px] h-full sm:h-[880px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-300 bg-white flex flex-col shadow-2xl relative overflow-hidden transition-all duration-300";
+                icon.setAttribute('data-lucide', 'sun');
+            } else if (mode === 'comfort') {
+                body.className = "bg-[#1e1c18] text-[#f4ecd8] h-full flex items-center justify-center p-0 sm:p-4 transition-colors duration-300";
+                container.className = "w-full sm:max-w-[420px] h-full sm:h-[880px] sm:rounded-[40px] sm:border-[8px] sm:border-[#332f27] bg-[#282520] flex flex-col shadow-2xl relative overflow-hidden transition-all duration-300";
+                icon.setAttribute('data-lucide', 'eye');
+            } else {
+                body.className = "bg-slate-950 text-slate-100 h-full flex items-center justify-center p-0 sm:p-4 transition-colors duration-300";
+                container.className = "w-full sm:max-w-[420px] h-full sm:h-[880px] sm:rounded-[40px] sm:border-[8px] sm:border-slate-800 bg-slate-900 flex flex-col shadow-2xl relative overflow-hidden transition-all duration-300";
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        function updateLiveClock() {
+            const now = new Date();
+            document.getElementById('current-time-header').textContent = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`view-${viewId}`).classList.remove('hidden');
+
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('text-brand-400');
+                btn.classList.add('text-slate-400');
+            });
+            let navBtnId = viewId;
+            if (viewId === 'analytics') navBtnId = 'analytics';
+            const activeNavBtn = document.getElementById(`nav-btn-${navBtnId}`);
+            if (activeNavBtn) {
+                activeNavBtn.classList.remove('text-slate-400');
+                activeNavBtn.classList.add('text-brand-400');
+            }
+
+            if (viewId === 'home') renderDashboard();
+            if (viewId === 'accounts') renderAccounts();
+            if (viewId === 'analytics') renderAnalytics();
+            if (viewId === 'search') renderSearchList();
+            if (viewId === 'add-transaction') {
+                document.getElementById('txn-edit-id').value = '';
+                document.getElementById('txn-view-title').textContent = 'Record Transaction';
+                document.getElementById('txn-submit-btn').textContent = 'Save Transaction';
+                populateDropdowns();
+                setDefaultTimestamp();
+                generateRandomTxnId();
+            }
+            lucide.createIcons();
+        }
+
+        function setDefaultTimestamp() {
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+            document.getElementById('txn-datetime').value = `${dd}-${mm}-${yyyy}`;
+        }
+
+        function generateRandomTxnId() {
+            document.getElementById('txn-id').value = 'TXN' + Math.floor(100000 + Math.random() * 900000);
+        }
+
+        function populateDropdowns() {
+            const bankSelect = document.getElementById('txn-bank-account');
+            const ocrBankSelect = document.getElementById('ocr-rev-bank');
+            
+            const bankHtml = appData.banks.length ? appData.banks.map(b => `<option value="${b.id}">${b.name} (${b.bankName} - ₹${Number(b.balance).toLocaleString('en-IN')})</option>`).join('') : '<option value="">No Bank Accounts Found</option>';
+            
+            if (bankSelect) bankSelect.innerHTML = bankHtml;
+            if (ocrBankSelect) ocrBankSelect.innerHTML = bankHtml;
+
+            const typeSelect = document.getElementById('bank-type-select');
+            if (typeSelect) {
+                typeSelect.innerHTML = '';
+                appData.bankTypesList.forEach(t => typeSelect.innerHTML += `<option value="${t}">${t}</option>`);
+                onBankTypeChanged();
+            }
+
+            const partSelect = document.getElementById('txn-particulars');
+            const ocrPartSelect = document.getElementById('ocr-rev-particulars');
+            let partHtml = '';
+            appData.particularsList.forEach(p => partHtml += `<option value="${p}">${p}</option>`);
+            if (partSelect) partSelect.innerHTML = partHtml;
+            if (ocrPartSelect) ocrPartSelect.innerHTML = partHtml;
+
+            const txnTypeSelect = document.getElementById('txn-type');
+            const ocrTxnTypeSelect = document.getElementById('ocr-rev-type');
+            let txnTypeHtml = '';
+            appData.txnTypesList.forEach(t => txnTypeHtml += `<option value="${t}">${t}</option>`);
+            if (txnTypeSelect) txnTypeSelect.innerHTML = txnTypeHtml;
+            if (ocrTxnTypeSelect) ocrTxnTypeSelect.innerHTML = txnTypeHtml;
+        }
+
+        function onBankTypeChanged() {
+            const typeSelect = document.getElementById('bank-type-select');
+            const nameSelect = document.getElementById('bank-name-select');
+            if (!typeSelect || !nameSelect) return;
+
+            const selectedType = typeSelect.value;
+            let banksForType = appData.bankNamesMap[selectedType] || [];
+            
+            nameSelect.innerHTML = '';
+            banksForType.forEach(b => {
+                nameSelect.innerHTML += `<option value="${b}">${b}</option>`;
+            });
+
+            if (appData.customBankNames.length > 0) {
+                appData.customBankNames.forEach(cb => {
+                    nameSelect.innerHTML += `<option value="${cb}">${cb} (Custom)</option>`;
+                });
+            }
+        }
+
+        function onIfscInputChanged() {
+            const ifscVal = document.getElementById('bank-ifsc').value.trim().toUpperCase();
+            const branchEl = document.getElementById('bank-branch');
+            if (ifscVal.length >= 4) {
+                if (ifscVal.startsWith('SBIN')) branchEl.value = 'State Bank Main Branch';
+                else if (ifscVal.startsWith('HDFC')) branchEl.value = 'HDFC Corporate Branch';
+                else if (ifscVal.startsWith('ICIC')) branchEl.value = 'ICICI City Branch';
+                else if (ifscVal.startsWith('UTIB')) branchEl.value = 'Axis Central Branch';
+                else if (ifscVal.startsWith('PUNB')) branchEl.value = 'PNB Urban Branch';
+                else branchEl.value = 'Main Branch';
+            }
+        }
+
+        function inspectTransaction(txnId) {
+            const t = appData.transactions.find(item => item.id === txnId);
+            if (!t) return;
+
+            selectedInspectionTxnId = t.id;
+            const bank = appData.banks.find(b => b.id === t.bankId) || { name: 'Holder', bankName: t.bankName || 'Bank', accNo: '****' };
+
+            document.getElementById('detail-name').textContent = t.name;
+            document.getElementById('detail-mobile').textContent = t.mobile || 'Not provided';
+            document.getElementById('detail-particulars').textContent = t.particulars;
+            document.getElementById('detail-amount').textContent = `₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('detail-bank-name').textContent = bank.bankName;
+            document.getElementById('detail-acc-name').textContent = bank.name;
+            document.getElementById('detail-acc-no').textContent = bank.accNo || 'Account Linked';
+            document.getElementById('detail-app-source').textContent = t.type;
+            document.getElementById('detail-date').textContent = t.datetime;
+            document.getElementById('detail-txn-id').textContent = t.txnId || 'N/A';
+            document.getElementById('detail-remarks').textContent = t.remarks || 'No remarks provided.';
+
+            const badge = document.getElementById('detail-drcr-badge');
+            const isCr = t.drCr === 'Cr';
+            badge.textContent = isCr ? 'Cr. (Income)' : 'Dr. (Expense)';
+            badge.className = `px-2.5 py-0.5 rounded-full text-[10px] font-semibold ${isCr ? 'bg-emerald-500/20 text-emerald-400' : 'bg-rose-500/20 text-rose-400'}`;
+
+            document.getElementById('modal-txn-details').classList.remove('hidden');
+        }
+
+        function closeTxnDetailsModal() {
+            document.getElementById('modal-txn-details').classList.add('hidden');
+        }
+
+        function editTransactionFromDetails() {
+            const id = selectedInspectionTxnId;
+            closeTxnDetailsModal();
+            if (id) openEditTransaction(id);
+        }
+
+        function editTransactionFromStatement(txnId) {
+            closeAccountInspectModal();
+            openEditTransaction(txnId);
+        }
+
+        function toggleImportantTxn(txnId) {
+            const t = appData.transactions.find(item => item.id === txnId);
+            if (t) {
+                t.isImportant = !t.isImportant;
+                saveData();
+                updateAccountInspectionView();
+                showToast(t.isImportant ? "Marked as Important ⭐" : "Unmarked important");
+            }
+        }
+
+        function inspectAccountTransactions(bankId) {
+            currentInspectedBankId = bankId;
+            const bank = appData.banks.find(b => b.id === bankId);
+            if (!bank) return;
+
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+
+            document.getElementById('statement-header-title').textContent = `${bank.bankName.toUpperCase()} - STATEMENT OF ACCOUNTS`;
+            document.getElementById('statement-account-meta').textContent = `Account Holder Name: ${bank.name} | Account No: ${bank.accNo} | IFSC: ${bank.ifsc || 'N/A'} | Branch: ${bank.branch || 'Main'}`;
+            document.getElementById('statement-account-meta').classList.remove('hidden');
+            document.getElementById('statement-header-subtitle').textContent = `Generated on: ${dd}-${mm}-${yyyy} | Commerce Financial Engine`;
+
+            document.getElementById('account-report-filter').value = 'all';
+            document.getElementById('statement-search-input').value = '';
+            document.getElementById('between-periods-container').classList.add('hidden');
+
+            updateAccountInspectionView();
+            document.getElementById('modal-account-inspect').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function openMasterStatementModal() {
+            currentInspectedBankId = null;
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+
+            document.getElementById('statement-header-title').textContent = `MASTER STATEMENT OF ACCOUNTS (ALL BANKS)`;
+            document.getElementById('statement-account-meta').textContent = `Account Holder Name: ${appData.profileName} | Combined Multi-Account Ledger`;
+            document.getElementById('statement-account-meta').classList.remove('hidden');
+            document.getElementById('statement-header-subtitle').textContent = `Generated on: ${dd}-${mm}-${yyyy} | Commerce Financial Engine`;
+
+            document.getElementById('account-report-filter').value = 'all';
+            document.getElementById('statement-search-input').value = '';
+            document.getElementById('between-periods-container').classList.add('hidden');
+
+            updateAccountInspectionView();
+            document.getElementById('modal-account-inspect').classList.remove('hidden');
+            lucide.createIcons();
+        }
+
+        function getDayOfWeekName(dateStr) {
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                let d = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(d.getTime())) {
+                    const days = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+                    return days[d.getDay()];
+                }
+            }
+            return '';
+        }
+
+        function updateAccountInspectionView() {
+            const bankId = currentInspectedBankId;
+            const filterMode = document.getElementById('account-report-filter').value;
+            const searchQuery = document.getElementById('statement-search-input').value.toLowerCase().trim();
+            const betweenContainer = document.getElementById('between-periods-container');
+            
+            if (filterMode === 'between_periods') {
+                betweenContainer.classList.remove('hidden');
+            } else {
+                betweenContainer.classList.add('hidden');
+            }
+
+            const dlBtn = document.getElementById('inspect-download-btn');
+            const prBtn = document.getElementById('inspect-print-btn');
+            const thBankNameCol = document.getElementById('th-bankname-col');
+            const thAccountCol = document.getElementById('th-account-col');
+            const thAccNoCol = document.getElementById('th-accno-col');
+
+            if (bankId) {
+                dlBtn.setAttribute('onclick', `exportAccountExcel('${bankId}')`);
+                prBtn.setAttribute('onclick', `printAccountReport('${bankId}')`);
+                thBankNameCol.classList.add('hidden');
+                thAccountCol.classList.add('hidden');
+                thAccNoCol.classList.add('hidden');
+            } else {
+                dlBtn.setAttribute('onclick', `exportMasterExcel()`);
+                prBtn.setAttribute('onclick', `printMasterReport()`);
+                thBankNameCol.classList.remove('hidden');
+                thAccountCol.classList.remove('hidden');
+                thAccNoCol.classList.remove('hidden');
+            }
+
+            const tableBody = document.getElementById('inspect-statement-table-body');
+            tableBody.innerHTML = '';
+
+            const targetTxns = bankId ? appData.transactions.filter(t => t.bankId === bankId) : appData.transactions;
+            const now = new Date();
+
+            const filtered = targetTxns.filter(t => {
+                const parts = (t.datetime || '').split('-');
+                let tDate = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : (t.rawTimestamp ? new Date(t.rawTimestamp) : new Date());
+                const diffDays = (now - tDate) / (1000 * 60 * 60 * 24);
+
+                if (searchQuery) {
+                    const matchesSearch = t.name.toLowerCase().includes(searchQuery) || 
+                                          t.particulars.toLowerCase().includes(searchQuery) || 
+                                          t.type.toLowerCase().includes(searchQuery) || 
+                                          (t.txnId && t.txnId.toLowerCase().includes(searchQuery));
+                    if (!matchesSearch) return false;
+                }
+
+                if (filterMode === 'all') return true;
+                if (filterMode === 'daily') return diffDays <= 1;
+                if (filterMode === 'weekly') return diffDays <= 7;
+                if (filterMode === 'monthly') return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+                if (filterMode === 'quarterly') return diffDays <= 90;
+                if (filterMode === 'half_yearly') return diffDays <= 182;
+                if (filterMode === 'yearly') return tDate.getFullYear() === now.getFullYear();
+                if (filterMode === 'financial_yearly') {
+                    let y = tDate.getFullYear();
+                    let m = tDate.getMonth();
+                    let startYear = m >= 3 ? y : y - 1;
+                    let curY = now.getFullYear();
+                    let curM = now.getMonth();
+                    let currentFYStart = curM >= 3 ? curY : curY - 1;
+                    return startYear === currentFYStart;
+                }
+                if (filterMode === 'between_periods') {
+                    let fromStr = document.getElementById('report-from-date').value.trim();
+                    let toStr = document.getElementById('report-to-date').value.trim();
+                    let fParts = fromStr.split('-');
+                    let tParts = toStr.split('-');
+                    let fDate = fParts.length === 3 ? new Date(`${fParts[2]}-${fParts[1]}-${fParts[0]}`) : new Date(0);
+                    let endDate = tParts.length === 3 ? new Date(`${tParts[2]}-${tParts[1]}-${tParts[0]}`) : new Date(8640000000000);
+                    return tDate >= fDate && tDate <= endDate;
+                }
+                return true;
+            });
+
+            if (filtered.length === 0) {
+                let colspanVal = bankId ? 8 : 11;
+                tableBody.innerHTML = `<tr><td colspan="${colspanVal}" class="text-center py-6 text-slate-500 font-bold">No transactions found for this search or period.</td></tr>`;
+                document.getElementById('statement-total-records').textContent = `Total Records: 0`;
+                document.getElementById('statement-net-sum').textContent = `Net Balance Sum: ₹0.00`;
+                return;
+            }
+
+            const sorted = [...filtered].sort((a, b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            let netSum = 0;
+            sorted.forEach(t => {
+                if (t.drCr === 'Cr') netSum += Number(t.amount);
+                else netSum -= Number(t.amount);
+            });
+
+            sorted.forEach((t, idx) => {
+                const isCr = t.drCr === 'Cr';
+                const dayName = getDayOfWeekName(t.datetime);
+                const dateDisplay = `${t.datetime}-${dayName}`;
+                const bankObj = appData.banks.find(b => b.id === t.bankId) || { name: 'Holder', bankName: t.bankName || 'Bank', accNo: '****' };
+                const amountDisplay = `${isCr ? '+' : '-'}₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                const closingDisplay = `₹${Number(t.closingBalance || 0).toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                const starSymbol = t.isImportant ? '⭐ ' : '';
+
+                let accountColsHtml = bankId ? '' : `
+                    <td class="p-2 border border-slate-300 font-bold text-amber-900">${bankObj.bankName}</td>
+                    <td class="p-2 border border-slate-300 font-bold text-slate-900">${bankObj.name}</td>
+                    <td class="p-2 border border-slate-300 font-mono text-slate-800">${bankObj.accNo}</td>
+                `;
+
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-amber-50 transition">
+                        <td class="p-2 border border-slate-300 text-center font-mono font-bold">${idx + 1}</td>
+                        <td class="p-2 border border-slate-300 font-mono text-slate-900">${dateDisplay}</td>
+                        ${accountColsHtml}
+                        <td class="p-2 border border-slate-300 font-bold text-slate-900">${t.particulars}</td>
+                        <td class="p-2 border border-slate-300 text-slate-800">${t.type}</td>
+                        <td class="p-2 border border-slate-300 font-bold text-slate-950">${starSymbol}${t.name}</td>
+                        <td class="p-2 border border-slate-300 text-right font-bold ${isCr ? 'text-emerald-700' : 'text-rose-700'}">${amountDisplay}</td>
+                        <td class="p-2 border border-slate-300 text-right font-mono text-slate-900">${closingDisplay}</td>
+                        <td class="p-2 border border-slate-300 text-center no-print space-x-1">
+                            <button onclick="toggleImportantTxn('${t.id}')" class="bg-amber-500 hover:bg-amber-600 text-white px-1.5 py-1 rounded text-[10px] font-bold shadow transition" title="Mark Important">⭐</button>
+                            <button onclick="editTransactionFromStatement('${t.id}')" class="bg-indigo-600 hover:bg-indigo-700 text-white px-2 py-1 rounded text-[10px] font-bold shadow transition">Edit</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            document.getElementById('statement-total-records').textContent = `Total Records: ${sorted.length}`;
+            document.getElementById('statement-net-sum').textContent = `Net Balance Sum: ₹${netSum.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+        }
+
+        function closeAccountInspectModal() {
+            document.getElementById('modal-account-inspect').classList.add('hidden');
+        }
+
+        function exportAccountExcel(bankId) {
+            const bank = appData.banks.find(b => b.id === bankId);
+            if (!bank) return;
+
+            const bankTxns = appData.transactions.filter(t => t.bankId === bankId);
+            if (bankTxns.length === 0) {
+                showToast("No transactions available for this account to export.");
+                return;
+            }
+
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+
+            let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="utf-8">
+            <style>
+                table { border-collapse: collapse; font-family: 'Times New Roman', Times, serif; font-size: 12pt; width: 100%; }
+                th { background-color: #FFFF00 !important; font-weight: bold !important; font-family: 'Times New Roman', Times, serif; font-size: 12pt; border: 1px solid #000000; padding: 6px; text-align: center; }
+                td { border: 1px solid #000000; padding: 5px; font-family: 'Times New Roman', Times, serif; font-size: 12pt; mso-number-format:"\@"; }
+                .dr-col { color: #990000; font-weight: bold; }
+                .cr-col { color: #006600; font-weight: bold; }
+            </style>
+            </head>
+            <body>
+            <h3 style="font-family:'Times New Roman'; font-weight:bold; text-transform:uppercase;">${bank.bankName} - STATEMENT OF ACCOUNTS</h3>
+            <p style="font-family:'Times New Roman'; font-weight:bold; color:#312e81;">Account Holder Name: ${bank.name} | Account No: ${bank.accNo} | IFSC: ${bank.ifsc || 'N/A'} | Branch: ${bank.branch || 'Main'}</p>
+            <p style="font-family:'Times New Roman'; font-size:11pt; color:#555;">Generated on: ${dd}-${mm}-${yyyy} | Commerce Financial Engine</p>
+            <br>
+            <table>
+            <thead>
+                <tr style="background-color: #FFFF00;">
+                    <th>S.No</th>
+                    <th>Date (DD-MM-YYYY-DAY)</th>
+                    <th>Category</th>
+                    <th>Application Name</th>
+                    <th>Merchant Name</th>
+                    <th>Dr. / Cr. Amount (₹)</th>
+                    <th>Closing Balance (₹)</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+            const sortedTxns = [...bankTxns].sort((a,b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            sortedTxns.forEach((t, index) => {
+                let isCr = t.drCr === 'Cr';
+                let dayName = getDayOfWeekName(t.datetime);
+                htmlTable += `<tr>
+                    <td style="text-align:center;">${index + 1}</td>
+                    <td>${t.datetime}-${dayName}</td>
+                    <td>${t.particulars || ''}</td>
+                    <td>${t.type || ''}</td>
+                    <td>${t.name || ''}</td>
+                    <td style="text-align:right;" class="${isCr ? 'cr-col' : 'dr-col'}">${isCr ? '+' : '-'}${Number(t.amount).toFixed(2)}</td>
+                    <td style="text-align:right;">${Number(t.closingBalance || 0).toFixed(2)}</td>
+                </tr>`;
+            });
+
+            htmlTable += `</tbody></table></body></html>`;
+
+            const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `FinVibe_${bank.bankName.replace(/\s+/g, '_')}_Statement.xls`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast(`Excel statement downloaded with account details & header!`);
+        }
+
+        function exportMasterExcel() {
+            if (appData.transactions.length === 0) {
+                showToast("No transactions available to export.");
+                return;
+            }
+
+            const now = new Date();
+            const dd = String(now.getDate()).padStart(2, '0');
+            const mm = String(now.getMonth() + 1).padStart(2, '0');
+            const yyyy = now.getFullYear();
+
+            let htmlTable = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+            <head><meta charset="utf-8">
+            <style>
+                table { border-collapse: collapse; font-family: 'Times New Roman', Times, serif; font-size: 12pt; width: 100%; }
+                th { background-color: #FFFF00 !important; font-weight: bold !important; font-family: 'Times New Roman', Times, serif; font-size: 12pt; border: 1px solid #000000; padding: 6px; text-align: center; }
+                td { border: 1px solid #000000; padding: 5px; font-family: 'Times New Roman', Times, serif; font-size: 12pt; mso-number-format:"\@"; }
+                .dr-col { color: #990000; font-weight: bold; }
+                .cr-col { color: #006600; font-weight: bold; }
+            </style>
+            </head>
+            <body>
+            <h3 style="font-family:'Times New Roman'; font-weight:bold;">MASTER STATEMENT OF ACCOUNTS (ALL BANKS)</h3>
+            <p style="font-family:'Times New Roman'; font-weight:bold;">Account Holder Name: ${appData.profileName} | Combined Ledger</p>
+            <p style="font-family:'Times New Roman'; font-size:11pt; color:#555;">Generated on: ${dd}-${mm}-${yyyy} | Commerce Financial Engine</p>
+            <br>
+            <table>
+            <thead>
+                <tr style="background-color: #FFFF00;">
+                    <th>S.No</th>
+                    <th>Date (DD-MM-YYYY-DAY)</th>
+                    <th>Bank Name</th>
+                    <th>Account Holder Name</th>
+                    <th>Account Number</th>
+                    <th>Category</th>
+                    <th>Application Name</th>
+                    <th>Merchant Name</th>
+                    <th>Dr. / Cr. Amount (₹)</th>
+                    <th>Closing Balance (₹)</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+            const sortedTxns = [...appData.transactions].sort((a,b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            sortedTxns.forEach((t, index) => {
+                let isCr = t.drCr === 'Cr';
+                let dayName = getDayOfWeekName(t.datetime);
+                let bankObj = appData.banks.find(b => b.id === t.bankId) || { name: 'Holder', bankName: 'Bank', accNo: '****' };
+                htmlTable += `<tr>
+                    <td style="text-align:center;">${index + 1}</td>
+                    <td>${t.datetime}-${dayName}</td>
+                    <td>${bankObj.bankName}</td>
+                    <td>${bankObj.name}</td>
+                    <td>${bankObj.accNo}</td>
+                    <td>${t.particulars || ''}</td>
+                    <td>${t.type || ''}</td>
+                    <td>${t.name || ''}</td>
+                    <td style="text-align:right;" class="${isCr ? 'cr-col' : 'dr-col'}">${isCr ? '+' : '-'}${Number(t.amount).toFixed(2)}</td>
+                    <td style="text-align:right;">${Number(t.closingBalance || 0).toFixed(2)}</td>
+                </tr>`;
+            });
+
+            htmlTable += `</tbody></table></body></html>`;
+
+            const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `FinVibe_Master_Statement.xls`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            showToast("Master statement downloaded with bank details!");
+        }
+
+        function printAccountReport(bankId) {
+            closeAccountInspectModal();
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function printMasterReport() {
+            closeAccountInspectModal();
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        function openVoiceModal() {
+            document.getElementById('voice-transcript-output').textContent = 'Listening... Say amount, merchant, date, category, application.';
+            document.getElementById('voice-prompt-title').textContent = 'Interactive Voice Assistant Active';
+            document.getElementById('modal-voice-txn').classList.remove('hidden');
+
+            try {
+                const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+                if (SpeechRecognition) {
+                    speechRecognitionInstance = new SpeechRecognition();
+                    speechRecognitionInstance.continuous = false;
+                    speechRecognitionInstance.interimResults = true;
+                    speechRecognitionInstance.lang = 'en-IN';
+
+                    speechRecognitionInstance.onresult = function(event) {
+                        let transcript = '';
+                        for (let i = event.resultIndex; i < event.results.length; i++) {
+                            transcript += event.results[i][0].transcript;
+                        }
+                        document.getElementById('voice-transcript-output').textContent = transcript;
+                        if (event.results[0].isFinal) {
+                            processVoiceTranscript(transcript);
+                        }
+                    };
+
+                    speechRecognitionInstance.onerror = function(event) {
+                        console.warn("Speech recognition error", event.error);
+                        document.getElementById('voice-prompt-title').textContent = 'Voice paused. Click Simulate Voice below.';
+                    };
+
+                    speechRecognitionInstance.start();
+                } else {
+                    document.getElementById('voice-prompt-title').textContent = 'Speech not supported. Click Simulate Voice.';
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+        }
+
+        function stopVoiceListening() {
+            if (speechRecognitionInstance) {
+                try { speechRecognitionInstance.stop(); } catch(e){}
+            }
+            document.getElementById('modal-voice-txn').classList.add('hidden');
+        }
+
+        function simulateVoiceSpeechInput() {
+            const samples = [
+                "Paid 450 rupees to Store on 24-10-2026 via PhonePe for Food & Dining",
+                "Paid 1450 rupees to Power Company on 24-10-2026 via Google Pay for Electricity Bill",
+                "Received 85000 salary from Employer on 24-10-2026 via Net Banking"
+            ];
+            const randomSample = samples[Math.floor(Math.random() * samples.length)];
+            document.getElementById('voice-transcript-output').textContent = randomSample;
+            document.getElementById('voice-prompt-title').textContent = "Processing speech info...";
+            
+            setTimeout(() => {
+                processVoiceTranscript(randomSample);
+            }, 1000);
+        }
+
+        function processVoiceTranscript(text) {
+            stopVoiceListening();
+            parseAndReviewAIOCRText(text, true);
+            showToast("Voice transcribed! Review details & complete missing info.");
+        }
+
+        function handleTransactionSubmit(event) {
+            event.preventDefault();
+
+            const dateStr = document.getElementById('txn-datetime').value.trim();
+            const parts = dateStr.split('-');
+            if (parts.length === 3) {
+                let d = parseInt(parts[0], 10);
+                let m = parseInt(parts[1], 10);
+                let y = parseInt(parts[2], 10);
+
+                if (isNaN(d) || isNaN(m) || isNaN(y) || m < 1 || m > 12) {
+                    showToast("Invalid date! Month (MM) must be strictly between 01 and 12.");
+                    return;
+                }
+
+                let dObj = new Date(`${y}-${m}-${d}`);
+                if (isNaN(dObj.getTime())) {
+                    showToast("Invalid date format! Use DD-MM-YYYY.");
+                    return;
+                }
+            } else {
+                showToast("Invalid date format! Use DD-MM-YYYY.");
+                return;
+            }
+
+            const editId = document.getElementById('txn-edit-id').value;
+            const bankId = document.getElementById('txn-bank-account').value;
+            if (!bankId) {
+                showToast("Please add and select a bank account first!");
+                switchView('accounts');
+                return;
+            }
+
+            const bank = appData.banks.find(b => b.id === bankId);
+            const amount = parseFloat(document.getElementById('txn-amount').value);
+            const drCr = document.getElementById('txn-drcr').value;
+
+            let parsedTimestamp = Date.now();
+            if (parts.length === 3) {
+                let dObj = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(dObj.getTime())) parsedTimestamp = dObj.getTime();
+            }
+
+            if (editId) {
+                const oldTxn = appData.transactions.find(t => t.id === editId);
+                if (oldTxn) {
+                    const oldBank = appData.banks.find(b => b.id === oldTxn.bankId);
+                    if (oldBank) {
+                        if (oldTxn.drCr === 'Cr') oldBank.balance -= Number(oldTxn.amount);
+                        else oldBank.balance += Number(oldTxn.amount);
+                    }
+                }
+                if (drCr === 'Cr') bank.balance += amount;
+                else bank.balance -= amount;
+
+                const idx = appData.transactions.findIndex(t => t.id === editId);
+                if (idx !== -1) {
+                    appData.transactions[idx] = {
+                        id: editId,
+                        bankId,
+                        bankName: bank.bankName,
+                        bankType: bank.bankType,
+                        particulars: document.getElementById('txn-particulars').value,
+                        datetime: dateStr,
+                        name: document.getElementById('txn-name').value,
+                        mobile: document.getElementById('txn-mobile').value,
+                        type: document.getElementById('txn-type').value,
+                        amount,
+                        drCr,
+                        txnId: document.getElementById('txn-id').value || ('TXN' + Math.floor(100000 + Math.random() * 900000)),
+                        remarks: document.getElementById('txn-remarks').value,
+                        rawTimestamp: parsedTimestamp,
+                        closingBalance: bank.balance,
+                        isImportant: oldTxn ? oldTxn.isImportant : false
+                    };
+                }
+                showToast("Transaction updated successfully!");
+            } else {
+                if (drCr === 'Cr') bank.balance += amount;
+                else bank.balance -= amount;
+
+                const newTxn = {
+                    id: 't_' + Date.now(),
+                    bankId,
+                    bankName: bank.bankName,
+                    bankType: bank.bankType,
+                    particulars: document.getElementById('txn-particulars').value,
+                    datetime: dateStr,
+                    name: document.getElementById('txn-name').value,
+                    mobile: document.getElementById('txn-mobile').value,
+                    type: document.getElementById('txn-type').value,
+                    amount,
+                    drCr,
+                    txnId: document.getElementById('txn-id').value || ('TXN' + Math.floor(100000 + Math.random() * 900000)),
+                    remarks: document.getElementById('txn-remarks').value,
+                    rawTimestamp: parsedTimestamp,
+                    closingBalance: bank.balance,
+                    isImportant: false
+                };
+                appData.transactions.push(newTxn);
+                showToast("Transaction recorded to selected account separately!");
+            }
+
+            appData.transactions.sort((a, b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            saveData();
+            document.getElementById('transaction-form').reset();
+            document.getElementById('txn-edit-id').value = '';
+            switchView('home');
+        }
+
+        function openEditTransaction(txnId) {
+            const t = appData.transactions.find(item => item.id === txnId);
+            if (!t) return;
+
+            switchView('add-transaction');
+            document.getElementById('txn-edit-id').value = t.id;
+            document.getElementById('txn-view-title').textContent = 'Edit Transaction';
+            document.getElementById('txn-submit-btn').textContent = 'Update Transaction';
+
+            populateDropdowns();
+            document.getElementById('txn-bank-account').value = t.bankId;
+            document.getElementById('txn-particulars').value = t.particulars;
+            document.getElementById('txn-datetime').value = t.datetime;
+            document.getElementById('txn-name').value = t.name;
+            document.getElementById('txn-mobile').value = t.mobile || '';
+            document.getElementById('txn-type').value = t.type;
+            document.getElementById('txn-amount').value = t.amount;
+            document.getElementById('txn-drcr').value = t.drCr;
+            document.getElementById('txn-id').value = t.txnId || '';
+            document.getElementById('txn-remarks').value = t.remarks || '';
+        }
+
+        function renderDashboard() {
+            let totalBalance = 0;
+            let monthlyCr = 0;
+            let monthlyDr = 0;
+            const now = new Date();
+            const curMonth = now.getMonth();
+            const curYear = now.getFullYear();
+
+            appData.banks.forEach(b => totalBalance += Number(b.balance));
+
+            const visibleTxns = appData.transactions.filter(t => {
+                let tDate = t.rawTimestamp ? new Date(t.rawTimestamp) : new Date();
+                return tDate.getMonth() === curMonth && tDate.getFullYear() === curYear;
+            });
+
+            visibleTxns.forEach(t => {
+                if (t.drCr === 'Cr') monthlyCr += Number(t.amount);
+                else monthlyDr += Number(t.amount);
+            });
+
+            document.getElementById('dash-total-balance').textContent = `₹${totalBalance.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('dash-monthly-income').textContent = `₹${monthlyCr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('dash-monthly-expense').textContent = `₹${monthlyDr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+            const accountsGrid = document.getElementById('dash-accounts-grid');
+            accountsGrid.innerHTML = '';
+            if (appData.banks.length === 0) {
+                accountsGrid.innerHTML = `<p class="text-xs text-slate-500 col-span-2 text-center py-2">No bank accounts added yet.</p>`;
+            } else {
+                appData.banks.forEach(b => {
+                    const badgeHtml = getBankTypeBadgeSVG(b.bankType, b.bankName);
+                    accountsGrid.innerHTML += `
+                        <div class="bg-slate-800/80 border border-slate-700/80 p-3.5 rounded-2xl flex flex-col justify-between shadow-sm">
+                            <div class="cursor-pointer" onclick="inspectAccountTransactions('${b.id}')">
+                                <div class="flex items-center space-x-2.5">
+                                    ${badgeHtml}
+                                    <div class="min-w-0 flex-1">
+                                        <h4 class="text-xs font-bold text-white truncate">${b.name}</h4>
+                                        <p class="text-[10px] text-slate-400 font-mono truncate">${b.accNo}</p>
+                                    </div>
+                                </div>
+                                <div class="mt-2 flex justify-between items-end">
+                                    <span class="text-[9px] text-indigo-300 font-medium truncate pr-1">${b.bankName}</span>
+                                    <p class="text-xs font-extrabold text-white">₹${Number(b.balance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                </div>
+                            </div>
+                            <div class="mt-2.5 pt-2 border-t border-slate-700/50 flex justify-between items-center">
+                                <button onclick="openAddTxnForBank('${b.id}')" class="w-full bg-brand-600/30 hover:bg-brand-600 text-brand-300 hover:text-white py-1.5 px-2 rounded-xl text-[10px] font-semibold flex items-center justify-center space-x-1 transition">
+                                    <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i>
+                                    <span>+ Add Transaction</span>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            const recentList = document.getElementById('dash-recent-list');
+            recentList.innerHTML = '';
+
+            if (appData.transactions.length === 0) {
+                recentList.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No transactions recorded yet.</p>`;
+                return;
+            }
+
+            const chronologicalSorted = [...appData.transactions].sort((a,b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            chronologicalSorted.slice(-5).reverse().forEach(t => {
+                const isCr = t.drCr === 'Cr';
+                const bankObj = appData.banks.find(b => b.id === t.bankId) || { name: 'Holder', bankName: t.bankName || 'Bank', accNo: '****' };
+                const starSymbol = t.isImportant ? '⭐ ' : '';
+                recentList.innerHTML += `
+                    <div onclick="inspectTransaction('${t.id}')" class="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-500 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${isCr ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} flex items-center justify-center">
+                                <i data-lucide="${isCr ? 'arrow-down-left' : 'arrow-up-right'}" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">${starSymbol}${t.name} <span class="text-[10px] text-slate-400 font-normal">(${t.particulars})</span></h4>
+                                <p class="text-[10px] text-slate-400">${t.datetime} • ${bankObj.name} (${bankObj.accNo}) ${t.mobile ? '• ' + t.mobile : ''}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="text-right">
+                                <p class="text-xs font-bold ${isCr ? 'text-emerald-400' : 'text-rose-400'}">${isCr ? '+' : '-'}₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                <span class="text-[9px] text-slate-400 uppercase">${t.type}</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function openAddTxnForBank(bankId) {
+            switchView('add-transaction');
+            const bankSelect = document.getElementById('txn-bank-account');
+            if (bankSelect) bankSelect.value = bankId;
+        }
+
+        function setAnalyticsMode(mode) {
+            currentAnalyticsMode = mode;
+            const stdBtn = document.getElementById('mode-btn-standard');
+            const crossBtn = document.getElementById('mode-btn-cross');
+            const stdContainer = document.getElementById('standard-timeframe-container');
+            const crossContainer = document.getElementById('cross-sectional-container');
+
+            if (mode === 'standard') {
+                stdBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-600 text-white transition";
+                crossBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition";
+                stdContainer.classList.remove('hidden');
+                crossContainer.classList.add('hidden');
+            } else {
+                crossBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-600 text-white transition";
+                stdBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition";
+                crossContainer.classList.remove('hidden');
+                stdContainer.classList.add('hidden');
+            }
+            renderAnalytics();
+        }
+
+        function setAnalyticsTimeframe(timeframe) {
+            currentAnalyticsTimeframe = timeframe;
+            document.querySelectorAll('.analytic-time-btn').forEach(btn => {
+                btn.className = "analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-800 text-slate-300 hover:bg-slate-700 transition whitespace-nowrap";
+            });
+            event.target.className = "analytic-time-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold bg-brand-600 text-white transition whitespace-nowrap";
+            
+            const datepickerContainer = document.getElementById('datewise-picker-container');
+            if (timeframe === 'datewise') {
+                datepickerContainer.classList.remove('hidden');
+            } else {
+                datepickerContainer.classList.add('hidden');
+            }
+            renderAnalytics();
+        }
+
+        function setAnalyticsDimension(dim) {
+            currentAnalyticsDimension = dim;
+            ['category', 'account', 'application'].forEach(d => {
+                const btn = document.getElementById(`dim-btn-${d}`);
+                if (d === dim) {
+                    btn.className = "flex-1 py-2 text-xs font-semibold rounded-xl bg-brand-600 text-white transition";
+                } else {
+                    btn.className = "flex-1 py-2 text-xs font-semibold rounded-xl text-slate-400 hover:text-white transition";
+                }
+            });
+            const titles = { category: 'Expense Breakdown by Category', account: 'Breakdown by Bank Account', application: 'Breakdown by Application / Type' };
+            document.getElementById('analytics-breakdown-title').textContent = titles[dim];
+            renderAnalytics();
+        }
+
+        function filterTxnsByPeriodKey(key) {
+            const now = new Date();
+            return appData.transactions.filter(t => {
+                const parts = (t.datetime || '').split('-');
+                let tDate = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : (t.rawTimestamp ? new Date(t.rawTimestamp) : new Date());
+                const diffTime = now - tDate;
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                if (key === 'all') return true;
+                if (key === 'last_7_days') return diffDays <= 7;
+                if (key === 'current_month') return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+                if (key === 'last_month') {
+                    let m = now.getMonth() - 1;
+                    let y = now.getFullYear();
+                    if (m < 0) { m = 11; y--; }
+                    return tDate.getMonth() === m && tDate.getFullYear() === y;
+                }
+                if (key === 'this_year') return tDate.getFullYear() === now.getFullYear();
+                return true;
+            });
+        }
+
+        function renderAnalytics() {
+            const now = new Date();
+            const targetDateStr = document.getElementById('analytics-target-date')?.value.trim() || '';
+
+            let filteredTxns = [];
+
+            if (currentAnalyticsMode === 'cross') {
+                const periodAKey = document.getElementById('cross-period-a').value;
+                const periodBKey = document.getElementById('cross-period-b').value;
+                const txnsA = filterTxnsByPeriodKey(periodAKey);
+                const txnsB = filterTxnsByPeriodKey(periodBKey);
+
+                let totalCrA = 0, totalDrA = 0, totalCrB = 0, totalDrB = 0;
+                txnsA.forEach(t => { if (t.drCr === 'Cr') totalCrA += Number(t.amount); else totalDrA += Number(t.amount); });
+                txnsB.forEach(t => { if (t.drCr === 'Cr') totalCrB += Number(t.amount); else totalDrB += Number(t.amount); });
+
+                let netA = totalCrA - totalDrA;
+                let netB = totalCrB - totalDrB;
+
+                document.getElementById('analytics-total-cr').textContent = `₹${totalCrA.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                document.getElementById('analytics-total-dr').textContent = `₹${totalDrA.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+                document.getElementById('analytics-net-income').textContent = `₹${netA.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+                const container = document.getElementById('analytics-breakdown-list');
+                container.innerHTML = `
+                    <div class="bg-slate-950 p-4 rounded-2xl border border-slate-800 space-y-3">
+                        <h4 class="text-xs font-bold text-indigo-300">Cross-Sectional Comparative Summary</h4>
+                        <div class="grid grid-cols-2 gap-3 text-xs">
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-400 uppercase font-semibold">Period A (${periodAKey})</p>
+                                <p class="text-emerald-400 font-bold mt-1">In: ₹${totalCrA.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                <p class="text-rose-400 font-bold">Out: ₹${totalDrA.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                <p class="text-indigo-300 font-bold mt-1">Net: ₹${netA.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                            </div>
+                            <div class="bg-slate-900 p-3 rounded-xl border border-slate-800">
+                                <p class="text-[10px] text-slate-400 uppercase font-semibold">Period B (${periodBKey})</p>
+                                <p class="text-emerald-400 font-bold mt-1">In: ₹${totalCrB.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                <p class="text-rose-400 font-bold">Out: ₹${totalDrB.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                                <p class="text-indigo-300 font-bold mt-1">Net: ₹${netB.toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                            </div>
+                        </div>
+                        <p class="text-[10px] text-slate-400 italic">Difference in Outflow: ₹${Math.abs(totalDrA - totalDrB).toLocaleString('en-IN', {minimumFractionDigits: 2})} (${totalDrA > totalDrB ? 'Period A higher' : 'Period B higher'})</p>
+                    </div>
+                `;
+                lucide.createIcons();
+                return;
+            }
+
+            filteredTxns = appData.transactions.filter(t => {
+                const parts = (t.datetime || '').split('-');
+                let tDate = parts.length === 3 ? new Date(`${parts[2]}-${parts[1]}-${parts[0]}`) : (t.rawTimestamp ? new Date(t.rawTimestamp) : new Date());
+                const diffTime = now - tDate;
+                const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+                if (currentAnalyticsTimeframe === 'all') return true;
+                if (currentAnalyticsTimeframe === 'oneday') return diffDays <= 1;
+                if (currentAnalyticsTimeframe === 'datewise') return t.datetime === targetDateStr;
+                if (currentAnalyticsTimeframe === 'weekly') return diffDays <= 7;
+                if (currentAnalyticsTimeframe === 'monthly') return tDate.getMonth() === now.getMonth() && tDate.getFullYear() === now.getFullYear();
+                if (currentAnalyticsTimeframe === 'quarterly') return diffDays <= 90;
+                if (currentAnalyticsTimeframe === 'yearly') return tDate.getFullYear() === now.getFullYear();
+                return true;
+            });
+
+            let totalCr = 0;
+            let totalDr = 0;
+            let breakdownMap = {};
+            let groupTxnsMap = {};
+
+            filteredTxns.forEach(t => {
+                if (t.drCr === 'Cr') totalCr += Number(t.amount);
+                else {
+                    totalDr += Number(t.amount);
+                    let key = t.particulars;
+                    if (currentAnalyticsDimension === 'account') key = t.bankName;
+                    if (currentAnalyticsDimension === 'application') key = t.type;
+                    
+                    breakdownMap[key] = (breakdownMap[key] || 0) + Number(t.amount);
+                    if (!groupTxnsMap[key]) groupTxnsMap[key] = [];
+                    groupTxnsMap[key].push(t);
+                }
+            });
+
+            let netIncome = totalCr - totalDr;
+
+            document.getElementById('analytics-total-cr').textContent = `₹${totalCr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('analytics-total-dr').textContent = `₹${totalDr.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+            document.getElementById('analytics-net-income').textContent = `₹${netIncome.toLocaleString('en-IN', {minimumFractionDigits: 2})}`;
+
+            const container = document.getElementById('analytics-breakdown-list');
+            container.innerHTML = '';
+
+            const keys = Object.keys(breakdownMap);
+            if (keys.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-4">No records found for this analysis period.</p>`;
+                return;
+            }
+
+            keys.forEach(k => {
+                const amt = breakdownMap[k];
+                const pct = totalDr > 0 ? Math.round((amt / totalDr) * 100) : 0;
+                const txnsList = groupTxnsMap[k] || [];
+                const safeKeyId = k.replace(/[^a-zA-Z0-9]/g, '_');
+
+                let txnsHtml = txnsList.map(t => `
+                    <div onclick="inspectTransaction('${t.id}')" class="bg-slate-950 p-2.5 rounded-xl border border-slate-800 flex justify-between items-center cursor-pointer hover:border-brand-500 transition">
+                        <div>
+                            <p class="text-xs font-bold text-white">${t.isImportant ? '⭐ ' : ''}${t.name} <span class="text-[10px] text-slate-400">(${t.datetime})</span></p>
+                            <p class="text-[10px] text-indigo-300">${t.type} • ${t.bankName} ${t.mobile ? '• ' + t.mobile : ''}</p>
+                        </div>
+                        <p class="text-xs font-bold text-rose-400">-₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                    </div>
+                `).join('');
+
+                container.innerHTML += `
+                    <div class="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-3.5 space-y-2">
+                        <div class="flex justify-between text-xs font-semibold cursor-pointer" onclick="toggleAnalyticsGroup('${safeKeyId}')">
+                            <div class="flex items-center space-x-2">
+                                <i data-lucide="chevron-right" id="icon_${safeKeyId}" class="w-4 h-4 text-brand-400 transition-transform"></i>
+                                <span class="text-white">${k} <span class="text-[10px] text-slate-400 font-normal">(${txnsList.length} txns)</span></span>
+                            </div>
+                            <span class="text-slate-300">₹${amt.toLocaleString('en-IN', {minimumFractionDigits: 2})} (${pct}%)</span>
+                        </div>
+                        <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                            <div class="bg-brand-500 h-full rounded-full" style="width: ${pct}%"></div>
+                        </div>
+                        <div id="group_${safeKeyId}" class="space-y-2 pt-2 hidden">
+                            ${txnsHtml}
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function toggleAnalyticsGroup(safeKeyId) {
+            const groupEl = document.getElementById(`group_${safeKeyId}`);
+            const iconEl = document.getElementById(`icon_${safeKeyId}`);
+            if (groupEl) {
+                groupEl.classList.toggle('hidden');
+                if (groupEl.classList.contains('hidden')) {
+                    iconEl.style.transform = 'rotate(0deg)';
+                } else {
+                    iconEl.style.transform = 'rotate(90deg)';
+                }
+            }
+        }
+
+        function printReport() {
+            window.print();
+        }
+
+        function renderSearchList() {
+            const query = document.getElementById('global-search-input').value.toLowerCase();
+            const container = document.getElementById('search-results-list');
+            container.innerHTML = '';
+
+            const filtered = appData.transactions.filter(t => 
+                t.name.toLowerCase().includes(query) || 
+                t.particulars.toLowerCase().includes(query) || 
+                (t.mobile && t.mobile.toLowerCase().includes(query)) ||
+                (t.txnId && t.txnId.toLowerCase().includes(query)) || 
+                t.bankName.toLowerCase().includes(query) ||
+                t.type.toLowerCase().includes(query)
+            );
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No transactions found matching your search.</p>`;
+                return;
+            }
+
+            const sortedFiltered = [...filtered].sort((a,b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            sortedFiltered.forEach(t => {
+                const isCr = t.drCr === 'Cr';
+                const bankObj = appData.banks.find(b => b.id === t.bankId) || { name: 'Holder', bankName: t.bankName || 'Bank', accNo: '****' };
+                const starSymbol = t.isImportant ? '⭐ ' : '';
+                container.innerHTML += `
+                    <div onclick="inspectTransaction('${t.id}')" class="bg-slate-800/60 border border-slate-700/60 p-3.5 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-500 transition">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-xl ${isCr ? 'bg-emerald-500/10 text-emerald-400' : 'bg-rose-500/10 text-rose-400'} flex items-center justify-center">
+                                <i data-lucide="${isCr ? 'arrow-down-left' : 'arrow-up-right'}" class="w-5 h-5"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-xs font-bold text-white">${starSymbol}${t.name} <span class="text-[10px] text-slate-400 font-normal">(${t.particulars})</span></h4>
+                                <p class="text-[10px] text-slate-400">${t.datetime} • ${bankObj.name} (${bankObj.accNo}) ${t.mobile ? '• ' + t.mobile : ''}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-xs font-bold ${isCr ? 'text-emerald-400' : 'text-rose-400'}">${isCr ? '+' : '-'}₹${Number(t.amount).toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                            <span class="text-[9px] text-slate-400 uppercase">${bankObj.bankName}</span>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function renderAccounts() {
+            const container = document.getElementById('accounts-list-container');
+            container.innerHTML = '';
+
+            if (appData.banks.length === 0) {
+                container.innerHTML = `<p class="text-xs text-slate-500 text-center py-6">No bank accounts added yet. Click 'Add Bank' above.</p>`;
+                return;
+            }
+
+            appData.banks.forEach(b => {
+                const badgeHtml = getBankTypeBadgeSVG(b.bankType, b.bankName);
+                container.innerHTML += `
+                    <div class="bg-slate-900 border border-slate-800 p-4 rounded-2xl flex items-center justify-between cursor-pointer hover:border-brand-500 transition" onclick="inspectAccountTransactions('${b.id}')">
+                        <div class="flex items-center space-x-3.5">
+                            ${badgeHtml}
+                            <div>
+                                <h4 class="text-sm font-bold text-white">${b.name} <span class="text-[10px] text-brand-400 font-normal">(${b.bankType})</span></h4>
+                                <p class="text-xs text-slate-400">${b.bankName} • ${b.accNo} ${b.branch ? '• ' + b.branch : ''}</p>
+                            </div>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm font-extrabold text-white">₹${Number(b.balance).toLocaleString('en-IN', {minimumFractionDigits: 2})}</p>
+                            <div class="flex space-x-2 justify-end mt-1" onclick="event.stopPropagation()">
+                                <button onclick="openEditBankModal('${b.id}')" class="text-[10px] text-brand-400 hover:underline">Edit</button>
+                                <span class="text-slate-600">|</span>
+                                <button onclick="removeBankAccount('${b.id}')" class="text-[10px] text-rose-400 hover:underline">Remove</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        function openAddBankModal() {
+            document.getElementById('bank-form').reset();
+            document.getElementById('bank-edit-id').value = '';
+            document.getElementById('bank-nickname').value = appData.profileName;
+            document.getElementById('bank-modal-title').textContent = 'Add Bank Account';
+            populateDropdowns();
+            document.getElementById('modal-add-bank').classList.remove('hidden');
+        }
+
+        function openEditBankModal(bankId) {
+            const bank = appData.banks.find(b => b.id === bankId);
+            if (!bank) return;
+
+            document.getElementById('bank-edit-id').value = bank.id;
+            document.getElementById('bank-nickname').value = bank.name;
+            document.getElementById('bank-acc-no').value = bank.accNo;
+            document.getElementById('bank-ifsc').value = bank.ifsc || '';
+            document.getElementById('bank-branch').value = bank.branch || '';
+            document.getElementById('bank-balance').value = bank.balance;
+            
+            populateDropdowns();
+            if (bank.bankType) {
+                document.getElementById('bank-type-select').value = bank.bankType;
+                onBankTypeChanged();
+            }
+            if (bank.bankName) {
+                document.getElementById('bank-name-select').value = bank.bankName;
+            }
+
+            document.getElementById('bank-modal-title').textContent = 'Edit Bank Account';
+            document.getElementById('modal-add-bank').classList.remove('hidden');
+        }
+
+        function closeAddBankModal() {
+            document.getElementById('modal-add-bank').classList.add('hidden');
+        }
+
+        function handleBankSubmit(event) {
+            event.preventDefault();
+            const editId = document.getElementById('bank-edit-id').value;
+            const name = document.getElementById('bank-nickname').value;
+            const bankType = document.getElementById('bank-type-select').value;
+            const bankName = document.getElementById('bank-name-select').value;
+            const accNo = document.getElementById('bank-acc-no').value;
+            const ifsc = document.getElementById('bank-ifsc').value.trim().toUpperCase();
+            const branch = document.getElementById('bank-branch').value.trim();
+            const balance = parseFloat(document.getElementById('bank-balance').value);
+
+            if (editId) {
+                const bank = appData.banks.find(b => b.id === editId);
+                if (bank) {
+                    bank.name = name;
+                    bank.bankType = bankType;
+                    bank.bankName = bankName;
+                    bank.accNo = accNo;
+                    bank.ifsc = ifsc;
+                    bank.branch = branch;
+                    bank.balance = balance;
+                }
+                showToast("Bank updated successfully!");
+            } else {
+                appData.banks.push({ id: 'b_' + Date.now(), name, bankType, bankName, accNo, ifsc, branch, balance });
+                showToast("Bank added successfully!");
+            }
+
+            saveData();
+            closeAddBankModal();
+            renderAccounts();
+            populateDropdowns();
+            renderDashboard();
+        }
+
+        function removeBankAccount(bankId) {
+            if (!confirm("Are you sure you want to remove this bank account?")) return;
+            appData.banks = appData.banks.filter(b => b.id !== bankId);
+            saveData();
+            renderAccounts();
+            populateDropdowns();
+            renderDashboard();
+            showToast("Bank account removed.");
+        }
+
+        async function handleAdvancedAIOCRScan(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const statusEl = document.getElementById('ocr-status-text');
+            statusEl.textContent = "AI Engine analyzing screenshot...";
+            showToast("AI Scanning in progress...");
+
+            try {
+                const result = await Tesseract.recognize(file, 'eng', {
+                    logger: m => {
+                        if (m.status === 'recognizing text') {
+                            statusEl.textContent = `AI OCR Progress: ${Math.round(m.progress * 100)}%`;
+                        }
+                    }
+                });
+
+                const extractedText = result.data.text || "";
+                statusEl.textContent = "AI Extraction complete! Review or fill manually below.";
+                parseAndReviewAIOCRText(extractedText, false);
+            } catch (err) {
+                console.error(err);
+                statusEl.textContent = "OCR extraction failed. Please fill manually.";
+                parseAndReviewAIOCRText("", false);
+            }
+        }
+
+        function processAIOCRText() {
+            const text = document.getElementById('raw-ocr-text').value.trim();
+            parseAndReviewAIOCRText(text, false);
+        }
+
+        function parseAndReviewAIOCRText(text, isVoice = false) {
+            populateDropdowns();
+
+            let amount = "";
+            let currencyMatch = text.match(/(?:₹|Rs\.?|INR)\s*([0-9,]+(?:\.[0-9]{1,2})?)/i) || text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?|[0-9]{1,6})\b/);
+            
+            if (currencyMatch && currencyMatch[1]) {
+                let cleanAmt = parseFloat(currencyMatch[1].replace(/,/g, ''));
+                if (cleanAmt > 0) amount = cleanAmt;
+            } else {
+                let allNums = text.match(/\b([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]{2})?|[0-9]{1,6})\b/g);
+                if (allNums) {
+                    for (let n of allNums) {
+                        let val = parseFloat(n.replace(/,/g, ''));
+                        if (val > 0 && val < 10000000 && !(val >= 2020 && val <= 2035) && val !== 91) {
+                            amount = val;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (/five thousand/i.test(text)) amount = 5000;
+            else if (/ten thousand/i.test(text)) amount = 10000;
+            else if (/one thousand/i.test(text)) amount = 1000;
+
+            let isCr = /received from|money received|credited to|credited|deposit|salary|inflow/i.test(text);
+            let drCr = isCr ? "Cr" : "Dr";
+
+            let nameMatch = text.match(/(?:Received from|From|Paid to|To|Paid for)\s*[:\s]*([A-Z\s]{3,})/i);
+            let merchantName = "";
+            if (nameMatch) {
+                merchantName = nameMatch[1].replace(/\+91.*|\d{5,}|[\*\+\-\(\)]/g, '').trim().split('\n')[0];
+            }
+
+            let mobileMatch = text.match(/(?:\+91[\-\s]?)?([6-9]\d{9})/);
+            let extractedMobile = mobileMatch ? mobileMatch[1] : "";
+
+            let category = "General Receipt";
+            if (/electricity|bill|power/i.test(text)) category = "Electricity Bill";
+            else if (/recharge|mobile|jio|airtel|vi/i.test(text)) category = "Mobile Recharge";
+            else if (/food|dining|café|coffee/i.test(text)) category = "Food & Dining";
+            else if (drCr === 'Dr') category = "General Payment";
+
+            let now = new Date();
+            let dd = String(now.getDate()).padStart(2, '0');
+            let mm = String(now.getMonth() + 1).padStart(2, '0');
+            let yyyy = now.getFullYear();
+            let dateStr = `${dd}-${mm}-${yyyy}`;
+
+            let appSource = "UPI (PhonePe)";
+            if (/paytm/i.test(text)) appSource = "UPI (Paytm)";
+            else if (/google pay|gpay/i.test(text)) appSource = "UPI (Google Pay)";
+            else if (/amazon pay/i.test(text)) appSource = "UPI (Amazon Pay)";
+
+            let generatedTxnId = 'TXN' + Math.floor(100000 + Math.random() * 900000);
+
+            let hasMissing = !amount || !merchantName;
+            const warningEl = document.getElementById('missing-info-warning');
+            if (hasMissing) warningEl.classList.remove('hidden');
+            else warningEl.classList.add('hidden');
+
+            document.getElementById('ocr-rev-particulars').value = category;
+            document.getElementById('ocr-rev-name').value = merchantName || '';
+            document.getElementById('ocr-rev-mobile').value = extractedMobile || '';
+            document.getElementById('ocr-rev-amount').value = amount || '';
+            document.getElementById('ocr-rev-drcr').value = drCr;
+            document.getElementById('ocr-rev-datetime').value = dateStr;
+            document.getElementById('ocr-rev-type').value = appSource;
+            document.getElementById('ocr-rev-txn-id').value = generatedTxnId;
+            document.getElementById('ocr-rev-remarks').value = isVoice ? "Voice Recorded" : "AI Scanned Receipt";
+
+            document.getElementById('modal-ocr-review').classList.remove('hidden');
+        }
+
+        function generateOcrRevTxnId() {
+            document.getElementById('ocr-rev-txn-id').value = 'TXN' + Math.floor(100000 + Math.random() * 900000);
+        }
+
+        function closeOcrReviewModal() {
+            document.getElementById('modal-ocr-review').classList.add('hidden');
+        }
+
+        function confirmOcrReview() {
+            const bankId = document.getElementById('ocr-rev-bank').value;
+            if (!bankId) {
+                showToast("Please add and select a bank account!");
+                switchView('accounts');
+                return;
+            }
+
+            const bank = appData.banks.find(b => b.id === bankId);
+            const particulars = document.getElementById('ocr-rev-particulars').value;
+            const name = document.getElementById('ocr-rev-name').value;
+            const mobile = document.getElementById('ocr-rev-mobile').value;
+            const amount = parseFloat(document.getElementById('ocr-rev-amount').value);
+            const drCr = document.getElementById('ocr-rev-drcr').value;
+            const datetime = document.getElementById('ocr-rev-datetime').value;
+            const type = document.getElementById('ocr-rev-type').value;
+            const txnId = document.getElementById('ocr-rev-txn-id').value || ('TXN' + Math.floor(100000 + Math.random() * 900000));
+            const remarks = document.getElementById('ocr-rev-remarks').value;
+
+            if (!name || isNaN(amount) || amount <= 0) {
+                showToast("Please fill in Merchant Name and Amount correctly!");
+                return;
+            }
+
+            let parsedTimestamp = Date.now();
+            const parts = datetime.split('-');
+            if (parts.length === 3) {
+                let dObj = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                if (!isNaN(dObj.getTime())) parsedTimestamp = dObj.getTime();
+            }
+
+            if (drCr === 'Cr') bank.balance += amount;
+            else bank.balance -= amount;
+
+            const newTxn = {
+                id: 't_' + Date.now(),
+                bankId: bank.id,
+                bankName: bank.bankName,
+                bankType: bank.bankType,
+                particulars,
+                datetime,
+                name,
+                mobile,
+                type,
+                amount,
+                drCr,
+                txnId,
+                remarks,
+                rawTimestamp: parsedTimestamp,
+                closingBalance: bank.balance,
+                isImportant: false
+            };
+
+            appData.transactions.push(newTxn);
+            appData.transactions.sort((a, b) => (a.rawTimestamp || 0) - (b.rawTimestamp || 0));
+
+            saveData();
+            closeOcrReviewModal();
+            showToast(`Transaction recorded to ${bank.name} separately!`);
+            switchView('home');
+        }
+
+        function promptCustomParticular() {
+            customPromptTarget = 'particulars';
+            document.getElementById('custom-modal-title').textContent = 'Add Custom Category';
+            document.getElementById('custom-modal-label').textContent = 'Category / Particular *';
+            document.getElementById('custom-modal-input').value = '';
+            document.getElementById('modal-custom-prompt').classList.remove('hidden');
+        }
+
+        function promptCustomTxnType() {
+            customPromptTarget = 'type';
+            document.getElementById('custom-modal-title').textContent = 'Add Custom Application';
+            document.getElementById('custom-modal-label').textContent = 'Application Name *';
+            document.getElementById('custom-modal-input').value = '';
+            document.getElementById('modal-custom-prompt').classList.remove('hidden');
+        }
+
+        function promptCustomBankName() {
+            customPromptTarget = 'bankName';
+            document.getElementById('custom-modal-title').textContent = 'Add Custom Bank Name';
+            document.getElementById('custom-modal-label').textContent = 'Bank Name / Institution *';
+            document.getElementById('custom-modal-input').value = '';
+            document.getElementById('modal-custom-prompt').classList.remove('hidden');
+        }
+
+        function closeCustomPrompt() {
+            document.getElementById('modal-custom-prompt').classList.add('hidden');
+        }
+
+        function confirmCustomPrompt() {
+            const val = document.getElementById('custom-modal-input').value.trim();
+            if (!val) return;
+
+            if (customPromptTarget === 'particulars') {
+                if (!appData.particularsList.includes(val)) {
+                    appData.particularsList.push(val);
+                    saveData();
+                    populateDropdowns();
+                    const partSelect = document.getElementById('txn-particulars');
+                    const ocrPartSelect = document.getElementById('ocr-rev-particulars');
+                    if (partSelect) partSelect.value = val;
+                    if (ocrPartSelect) ocrPartSelect.value = val;
+                }
+            } else if (customPromptTarget === 'type') {
+                if (!appData.txnTypesList.includes(val)) {
+                    appData.txnTypesList.push(val);
+                    saveData();
+                    populateDropdowns();
+                    const txnTypeSelect = document.getElementById('txn-type');
+                    const ocrTxnTypeSelect = document.getElementById('ocr-rev-type');
+                    if (txnTypeSelect) txnTypeSelect.value = val;
+                    if (ocrTxnTypeSelect) ocrTxnTypeSelect.value = val;
+                }
+            } else if (customPromptTarget === 'bankName') {
+                if (!appData.customBankNames.includes(val)) {
+                    appData.customBankNames.push(val);
+                    saveData();
+                    onBankTypeChanged();
+                    document.getElementById('bank-name-select').value = val;
+                }
+            }
+            closeCustomPrompt();
+            showToast(`Added "${val}" successfully!`);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none');
+            toast.classList.add('opacity-100');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0', 'pointer-events-none');
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
